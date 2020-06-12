@@ -1,0 +1,19 @@
+{
+  "name": "@eyevinn/srt",
+  "version": "0.1.0",
+  "description": "Nodejs bindings for Secure Reliable Transport SDK",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean"
+  },
+  "gypfile": true,
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "node-gyp": "^7.0.0"
+  },
+  "dependencies": {
+    "node-addon-api": "^3.0.0"
+  }
+}
