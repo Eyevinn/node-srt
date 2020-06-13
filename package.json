@@ -8,8 +8,8 @@
     "clean": "node-gyp clean"
   },
   "gypfile": true,
-  "author": "",
-  "license": "ISC",
+  "author": "Eyevinn Technology AB <work@eyevinn.se>",
+  "license": "Apache-2.0",
   "devDependencies": {
     "node-gyp": "^7.0.0"
   },
