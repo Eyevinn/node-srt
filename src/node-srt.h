@@ -11,4 +11,6 @@ class NodeSRT : public Napi::ObjectWrap<NodeSRT> {
     Napi::Value CreateSocket(const Napi::CallbackInfo& info);
     Napi::Value Bind(const Napi::CallbackInfo& info);
     Napi::Value Listen(const Napi::CallbackInfo& info);
+    Napi::Value Accept(const Napi::CallbackInfo& info);
+    Napi::Value Close(const Napi::CallbackInfo& info);
 };

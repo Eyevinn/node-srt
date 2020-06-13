@@ -1,4 +1,4 @@
-const { SRT } = require('./index.js');
+const { SRT } = require('../index.js');
 
 const srt = new SRT();
 const socket = srt.createSocket();
@@ -19,4 +19,11 @@ if (!result) {
   console.log("Listen success");
 } else {
   console.log(result);
+}
+
+console.log("Waiting for client to connect");
+fhandle = srt.accept(socket);
+
+if (fhandle) {
+  console.log("Client connected");
 }
