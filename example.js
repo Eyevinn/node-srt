@@ -1,4 +1,4 @@
-const SRT = require('./index.js').SRT;
+const { SRT } = require('./index.js');
 
 const srt = new SRT();
 const socket = srt.createSocket();

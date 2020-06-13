@@ -7,7 +7,7 @@ npm install --save @eyevinn/srt
 ```
 
 ```
-const SRT = require('@eyevinn/srt').SRT;
+const { SRT } = require('@eyevinn/srt');
 
 const srt = new SRT();
 const socket = srt.createSocket();
