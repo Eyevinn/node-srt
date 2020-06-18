@@ -37,7 +37,7 @@ Napi::Value NodeSRT::CreateSocket(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
-  SRTSOCKET socket = srt_create_socket();
+  SRTSOCKET socket = srt_socket(AF_INET, SOCK_DGRAM, 0);
   if (socket == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
@@ -54,12 +54,18 @@ Napi::Value NodeSRT::Bind(const Napi::CallbackInfo& info) {
   Napi::Number port = info[2].As<Napi::Number>();
 
   struct sockaddr_in addr;
+  memset(&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
-  addr.sin_port = uint32_t(port);
-  inet_pton(AF_INET, std::string(address).c_str(), &addr.sin_addr);
-  
-  int result = srt_bind(socketValue, (struct sockaddr *)&addr, sizeof(addr));
+  addr.sin_port = htons(uint32_t(port));
+  int result = inet_pton(AF_INET, std::string(address).c_str(), &addr.sin_addr);
+  if (result != 1) {
+    Napi::Error::New(env, "Failed to init addr.sin_addr").ThrowAsJavaScriptException();
+    return Napi::Number::New(env, result);
+  }
+
+  result = srt_bind(socketValue, (struct sockaddr *)&addr, sizeof(addr));
   if (result == SRT_ERROR) {
+    srt_close(socketValue);
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
@@ -75,6 +81,7 @@ Napi::Value NodeSRT::Listen(const Napi::CallbackInfo& info) {
 
   int result = srt_listen(socketValue, backlog);
   if (result == SRT_ERROR) {
+    srt_close(socketValue);
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
@@ -86,13 +93,19 @@ Napi::Value NodeSRT::Accept(const Napi::CallbackInfo& info) {
   Napi::HandleScope scope(env);
 
   Napi::Number socketValue = info[0].As<Napi::Number>();
-  struct sockaddr_storage their_addr;
-  int addr_size = sizeof(their_addr);
+
+  sockaddr_in their_addr;
+  int addr_size;
+
   int their_fd = srt_accept(socketValue, (struct sockaddr *)&their_addr, &addr_size);
-  if (their_fd == SRT_ERROR) {
+  if (their_fd == SRT_INVALID_SOCK) {
+    srt_close(socketValue);
+    socketValue = Napi::Number::New(env, SRT_INVALID_SOCK);
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
+  srt_close(socketValue);
+  socketValue = Napi::Number::New(env, SRT_INVALID_SOCK);
   return Napi::Number::New(env, their_fd);
 }
 
