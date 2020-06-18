@@ -11,9 +11,11 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("createSocket", &NodeSRT::CreateSocket),
     InstanceMethod("bind", &NodeSRT::Bind),
     InstanceMethod("listen", &NodeSRT::Listen),
+    InstanceMethod("connect", &NodeSRT::Connect),
     InstanceMethod("accept", &NodeSRT::Accept),
     InstanceMethod("close", &NodeSRT::Close),
     InstanceMethod("read", &NodeSRT::Read),
+    InstanceMethod("write", &NodeSRT::Write),
   });
 
   constructor = Napi::Persistent(func);
@@ -89,6 +91,30 @@ Napi::Value NodeSRT::Listen(const Napi::CallbackInfo& info) {
   return Napi::Number::New(env, result);
 }
 
+Napi::Value NodeSRT::Connect(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::String host = info[1].As<Napi::String>();
+  Napi::Number port = info[2].As<Napi::Number>();
+
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof (addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(uint32_t(port));
+
+  inet_pton(AF_INET, std::string(host).c_str(), &addr.sin_addr);
+
+  int result = srt_connect(socketValue, (struct sockaddr *)&addr, sizeof(addr));
+  if (result == SRT_ERROR) {
+    srt_close(socketValue);
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+  }
+  return Napi::Number::New(env, result);
+}
+
 Napi::Value NodeSRT::Accept(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -136,4 +162,19 @@ Napi::Value NodeSRT::Read(const Napi::CallbackInfo& info) {
 
   int nb = srt_recvmsg(socketValue, (char *)buffer, (int)bufferSize);
   return Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
+}
+
+Napi::Value NodeSRT::Write(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Buffer<uint8_t> chunk = info[1].As<Napi::Buffer<uint8_t>>();
+
+  int result = srt_sendmsg2(socketValue, (const char *)chunk.Data(), chunk.Length(), nullptr);
+  if (result == SRT_ERROR) {
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+  }
+  return Napi::Number::New(env, result);
 }
