@@ -13,6 +13,7 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("listen", &NodeSRT::Listen),
     InstanceMethod("accept", &NodeSRT::Accept),
     InstanceMethod("close", &NodeSRT::Close),
+    InstanceMethod("read", &NodeSRT::Read),
   });
 
   constructor = Napi::Persistent(func);
@@ -120,4 +121,19 @@ Napi::Value NodeSRT::Close(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, SRT_ERROR);
   }
   return Napi::Number::New(env, result);
+}
+
+Napi::Value NodeSRT::Read(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Number chunkSize = info[1].As<Napi::Number>();
+
+  size_t bufferSize = uint32_t(chunkSize);
+  uint8_t buffer[bufferSize];
+  memset(&buffer, 0, bufferSize);
+
+  int nb = srt_recvmsg(socketValue, (char *)buffer, (int)bufferSize);
+  return Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
 }

@@ -26,4 +26,6 @@ fhandle = srt.accept(socket);
 
 if (fhandle) {
   console.log("Client connected");
+  const chunk = srt.read(fhandle, 1316);
+  console.log("Read chunk: " + chunk.length);
 }

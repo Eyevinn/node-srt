@@ -13,4 +13,5 @@ class NodeSRT : public Napi::ObjectWrap<NodeSRT> {
     Napi::Value Listen(const Napi::CallbackInfo& info);
     Napi::Value Accept(const Napi::CallbackInfo& info);
     Napi::Value Close(const Napi::CallbackInfo& info);
+    Napi::Value Read(const Napi::CallbackInfo& info);
 };
