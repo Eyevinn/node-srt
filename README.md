@@ -30,6 +30,8 @@ if (fd) {
 
 ## API
 
+TO BE DOCUMENTED
+
 ## [Contributing](CONTRIBUTING.md)
 
 In addition to contributing code, you can help to triage issues. This can include reproducing bug reports, or asking for vital information such as version numbers or reproduction instructions. 
