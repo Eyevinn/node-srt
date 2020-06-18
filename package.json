@@ -7,9 +7,16 @@
     "build": "node-gyp rebuild",
     "clean": "node-gyp clean"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Eyevinn/node-srt"
+  },
   "gypfile": true,
   "author": "Eyevinn Technology AB <work@eyevinn.se>",
-  "license": "Apache-2.0",
+  "contributors": [
+    "Jonas Rydholm Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)"
+  ],
+  "license": "MIT",
   "devDependencies": {
     "node-gyp": "^7.0.0"
   },
