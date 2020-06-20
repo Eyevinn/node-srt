@@ -4,7 +4,8 @@
   "description": "Nodejs bindings for Secure Reliable Transport SDK",
   "main": "index.js",
   "scripts": {
-    "build": "node-gyp rebuild",
+    "preinstall": "npm install git-clone && node scripts/build-srt-sdk.js",
+    "install": "node-gyp rebuild -j 8",
     "clean": "node-gyp clean"
   },
   "repository": {
@@ -21,6 +22,7 @@
     "node-gyp": "^7.0.0"
   },
   "dependencies": {
+    "git-clone": "^0.1.0",
     "node-addon-api": "^3.0.0"
   }
 }

@@ -8,9 +8,10 @@
       "src/node-srt.cc"
     ],
     "include_dirs": [
-      "<!@(node -p \"require('node-addon-api').include\")"
+      "<!@(node -p \"require('node-addon-api').include\")",
+      "deps/build/include"
     ],
-    "libraries": [ "/usr/local/lib/libsrt.a" ],
+    "libraries": [ "<(module_root_dir)/deps/build/lib/libsrt.a" ],
     "dependencies": [
       "<!(node -p \"require('node-addon-api').gyp\")"
     ],
