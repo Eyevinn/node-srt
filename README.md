@@ -30,7 +30,18 @@ if (fd) {
 
 ## API
 
-TO BE DOCUMENTED
+```
+class SRT {
+  createSocket(): socket:Number
+  bind(socket:Number, address:String, port:Number): result:Number
+  listen(socket:Number, backlog:Number): result:Number
+  connect(socket:Number, host:String, port:Number): result:Number
+  accept(socket:Number): fileDescriptor:Number
+  close(socket:Number): result:Number
+  read(socket:Number, chunkSize:Number): chunk:Buffer
+  write(socket:Number, chunk:Buffer): result:Number
+}
+```
 
 ## [Contributing](CONTRIBUTING.md)
 
