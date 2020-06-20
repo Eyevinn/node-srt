@@ -11,7 +11,7 @@
 npm install --save @eyevinn/srt
 ```
 
-Installing from NPM downloads and builds SRT SDK for your operating system × architecture.
+Installing from NPM downloads and builds SRT SDK and NodeJS addon for your operating system × architecture.
 
 ## Example
 
