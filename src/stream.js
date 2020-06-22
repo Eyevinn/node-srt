@@ -1,4 +1,4 @@
-const { Readable } = require('stream');
+const { Readable, Writable } = require('stream');
 const LIB = require('../build/Release/node_srt.node');
 const debug = require('debug')('srt-stream');
 
@@ -56,6 +56,30 @@ class SRTReadStream extends Readable {
   }
 }
 
+class SRTWriteStream extends Writable {
+  constructor(address, port, opts) {
+    super();
+    this.srt = new LIB.SRT();
+    this.socket = this.srt.createSocket();
+    this.address = address;
+    this.port = port;
+  }
+
+  connect(cb) {
+    this.srt.connect(this.socket, this.address, this.port);
+    this.fd = this.socket;
+    if (this.fd) {
+      cb(this);
+    }
+  }
+
+  _write(chunk, encoding, callback) {
+    this.srt.write(this.fd, chunk);
+    callback();
+  }
+}
+
 module.exports = {
-  SRTReadStream
+  SRTReadStream,
+  SRTWriteStream
 }

@@ -32,7 +32,7 @@ if (fd) {
 
 ```
 class SRT {
-  createSocket(): socket:Number
+  createSocket(sender?:Boolean): socket:Number
   bind(socket:Number, address:String, port:Number): result:Number
   listen(socket:Number, backlog:Number): result:Number
   connect(socket:Number, host:String, port:Number): result:Number
@@ -63,6 +63,21 @@ of in caller mode:
 const srt = new SRTReadStream('127.0.0.1', 1234);
 srt.connect(readStream => {
   readStream.pipe(dest);
+});
+```
+
+### Writable Stream
+
+Example of a writable stream
+
+```
+const fs = require('fs');
+const source = fs.createReadStream('./input');
+const { SRTWriteStream } = require('@eyevinn/srt');
+
+const srt = new SRTWriteStream('127.0.0.1', 1234);
+srt.connect(writeStream => {
+  source.pipe(writeStream);
 });
 ```
 

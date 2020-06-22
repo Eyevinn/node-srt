@@ -44,10 +44,19 @@ Napi::Value NodeSRT::CreateSocket(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
+  Napi::Boolean isSender = Napi::Boolean::New(env, false);
+  if (info.Length() > 0) {
+    isSender = info[0].As<Napi::Boolean>();
+  }
+  
   SRTSOCKET socket = srt_socket(AF_INET, SOCK_DGRAM, 0);
   if (socket == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
+  }
+  if (isSender) {
+    int yes = 1;
+    srt_setsockflag(socket, SRTO_SENDER, &yes, sizeof(yes));
   }
   return Napi::Number::New(env, socket);
 }
