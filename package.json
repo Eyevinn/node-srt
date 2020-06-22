@@ -6,6 +6,7 @@
   "scripts": {
     "preinstall": "npm install git-clone && node scripts/build-srt-sdk.js",
     "install": "node-gyp rebuild -j 8",
+    "rebuild": "node-gyp rebuild",
     "clean": "node-gyp clean"
   },
   "repository": {
@@ -22,6 +23,7 @@
     "node-gyp": "^7.0.0"
   },
   "dependencies": {
+    "debug": "^4.1.1",
     "git-clone": "^0.1.0",
     "node-addon-api": "^3.0.0"
   }
