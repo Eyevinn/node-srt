@@ -44,7 +44,7 @@ class SRT {
 ```
 
 ### Readable Stream
-A custom readable stream API is also available, example:
+A custom readable stream API is also available, example (in listener mode):
 
 ```
 const fs = require('fs');
@@ -53,6 +53,15 @@ const { SRTReadStream } = require('@eyevinn/srt');
 
 const srt = new SRTReadStream('0.0.0.0', 1234);
 srt.listen(readStream => {
+  readStream.pipe(dest);
+});
+```
+
+of in caller mode:
+
+```
+const srt = new SRTReadStream('127.0.0.1', 1234);
+srt.connect(readStream => {
   readStream.pipe(dest);
 });
 ```
