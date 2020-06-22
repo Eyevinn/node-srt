@@ -33,7 +33,8 @@ class SRTReadStream extends Readable {
   }
 
   connect(cb) {
-    this.fd = this.srt.connect(this.socket, address, port);
+    this.srt.connect(this.socket, this.address, this.port);
+    this.fd = this.socket;
     if (this.fd) {
       cb(this);
     }
