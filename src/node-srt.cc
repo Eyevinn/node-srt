@@ -16,6 +16,10 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("close", &NodeSRT::Close),
     InstanceMethod("read", &NodeSRT::Read),
     InstanceMethod("write", &NodeSRT::Write),
+
+    StaticValue("SRTO_MSS", Napi::Number::New(env, 0)),
+    StaticValue("SRTO_SNDSYN", Napi::Number::New(env, 1)),
+
   });
 
   constructor = Napi::Persistent(func);
@@ -161,6 +165,10 @@ Napi::Value NodeSRT::Read(const Napi::CallbackInfo& info) {
   memset(&buffer, 0, bufferSize);
 
   int nb = srt_recvmsg(socketValue, (char *)buffer, (int)bufferSize);
+  if (nb == SRT_ERROR) {
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+  }
   return Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
 }
 
