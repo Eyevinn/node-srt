@@ -43,6 +43,20 @@ class SRT {
 }
 ```
 
+### Readable Stream
+A custom readable stream API is also available, example:
+
+```
+const fs = require('fs');
+const dest = fs.createWriteStream('./output');
+const { SRTReadStream } = require('@eyevinn/srt');
+
+const srt = new SRTReadStream('0.0.0.0', 1234);
+srt.listen(readStream => {
+  readStream.pipe(dest);
+});
+```
+
 ## [Contributing](CONTRIBUTING.md)
 
 In addition to contributing code, you can help to triage issues. This can include reproducing bug reports, or asking for vital information such as version numbers or reproduction instructions. 
