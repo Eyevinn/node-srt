@@ -8,6 +8,7 @@
     "install": "node-gyp rebuild -j 8",
     "rebuild": "node-gyp rebuild",
     "clean": "node-gyp clean",
+    "test": "$(npm bin)/jasmine",
     "postversion": "git push && git push --tags"
   },
   "repository": {
@@ -22,6 +23,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "jasmine": "^3.5.0",
     "node-gyp": "^7.0.0"
   },
   "dependencies": {
