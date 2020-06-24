@@ -25,10 +25,10 @@ if (!result) {
 const epid = srt.epollCreate();
 srt.epollAddUsock(epid, socket, SRT.EPOLL_IN | SRT.EPOLL_ERR);
 
-console.log("Waiting for action");
 
 while (true) {
-  const events = srt.epollUWait(epid, 500);
+  console.log("Waiting for action");
+  const events = srt.epollUWait(epid, 1000);
   events.forEach(event => {
     const status = srt.getSockState(event.socket);
     if (status === SRT.SRTS_BROKEN || status === SRT.SRTS_NONEXIST || status === SRT.SRTS_CLOSED) {
