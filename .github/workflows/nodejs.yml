@@ -37,13 +37,7 @@ jobs:
     - name: Restore from cache and run vcpkg
       uses: lukka/run-vcpkg@v3
       with:
-        # Response file stored in source control, it provides the list of ports and triplet(s).
-        vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
-        # Location of the vcpkg as submodule of the repository.
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        # Since the cache must be invalidated when content of the response file changes, let's
-        # compute its hash and append this to the computed cache's key.
-        appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
+        setupOnly: true
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
