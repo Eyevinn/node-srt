@@ -1,5 +1,10 @@
+#if defined(_WIN32)
+#include <srt.h>
+#pragma comment(lib, "ws2_32.lib")
+#elif !defined(_WIN32)
 #include <srt/srt.h>
 #include <sys/syslog.h>
+#endif
 #include "node-srt.h"
 
 Napi::FunctionReference NodeSRT::constructor;
@@ -170,15 +175,19 @@ Napi::Value NodeSRT::Read(const Napi::CallbackInfo& info) {
   Napi::Number chunkSize = info[1].As<Napi::Number>();
 
   size_t bufferSize = uint32_t(chunkSize);
-  uint8_t buffer[bufferSize];
-  memset(&buffer, 0, bufferSize);
+  uint8_t *buffer = (uint8_t *)malloc(bufferSize);
+  memset(buffer, 0, bufferSize);
 
   int nb = srt_recvmsg(socketValue, (char *)buffer, (int)bufferSize);
   if (nb == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
-  return Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
+
+  Napi::Value nbuff = Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
+  free(buffer);
+
+  return nbuff;
 }
 
 Napi::Value NodeSRT::Write(const Napi::CallbackInfo& info) {
