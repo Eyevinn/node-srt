@@ -22,7 +22,7 @@ jobs:
         npm test
       env:
         CI: true
-        
+
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -30,6 +30,10 @@ jobs:
         node-version: [12.x]
 
     steps:
+    - name: Restore from cache and run vcpkg
+      uses: lukka/run-vcpkg@v3
+      with:
+        setupOnly: true
     - uses: actions/checkout@v1
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
