@@ -26,4 +26,13 @@ describe("SRT library", () => {
     const value = srt.getSockOpt(socket, SRT.SRTO_MSS);
     expect(value).toEqual(1052);
   });
+
+  it("can set SRT socket in non-blocking mode", () => {
+    const srt = new SRT();
+    const socket = srt.createSocket();
+    const result = srt.setSockOpt(socket, SRT.SRTO_RCVSYN, false);
+    expect(result).not.toEqual(SRT.ERROR);
+    const value = srt.getSockOpt(socket, SRT.SRTO_RCVSYN);
+    expect(value).toEqual(false);
+  });
 });

@@ -29,6 +29,7 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
 
     StaticValue("SRTO_MSS", Napi::Number::New(env, 0)),
     StaticValue("SRTO_SNDSYN", Napi::Number::New(env, 1)),
+    StaticValue("SRTO_RCVSYN", Napi::Number::New(env, 2)),
     
   });
 
@@ -227,6 +228,15 @@ Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
       Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
       return Napi::Number::New(env, SRT_ERROR);
     }
+  } else if (info[2].IsBoolean()) {
+    Napi::Boolean value = info[2].As<Napi::Boolean>();
+    int32_t optName = option;
+    bool optValue = value;
+    result = srt_setsockflag(socketValue, (SRT_SOCKOPT)optName, &optValue, sizeof(bool));
+    if (result == SRT_ERROR) {
+      Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+      return Napi::Number::New(env, SRT_ERROR);
+    }
   }
   return Napi::Number::New(env, result);
 }
@@ -244,12 +254,19 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
 
   switch((SRT_SOCKOPT)optName) {
     case SRTO_MSS:
-      {
-        int optValue;
-        int optSize = sizeof(optValue);
-        result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
-        return Napi::Value::From(env, optValue);
-      }
+    {
+      int optValue;
+      int optSize = sizeof(optValue);
+      result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
+      return Napi::Value::From(env, optValue);
+    }
+    case SRTO_RCVSYN:
+    {
+      bool optValue;
+      int optSize = sizeof(optValue);
+      result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
+      return Napi::Value::From(env, optValue);
+    }
     default:
       Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
       break;
