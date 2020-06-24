@@ -26,7 +26,7 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("getSockState", &NodeSRT::GetSockState),
     InstanceMethod("epollCreate", &NodeSRT::EpollCreate),
     InstanceMethod("epollAddUsock", &NodeSRT::EpollAddUsock),
-    InstanceMethod("epollWait", &NodeSRT::EpollWait),
+    InstanceMethod("epollUWait", &NodeSRT::EpollUWait),
 
     StaticValue("ERROR", Napi::Number::New(env, SRT_ERROR)),
     StaticValue("INVALID_SOCK", Napi::Number::New(env, SRT_INVALID_SOCK)),
@@ -307,13 +307,51 @@ Napi::Value NodeSRT::GetSockState(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value NodeSRT::EpollCreate(const Napi::CallbackInfo& info) {
-  
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  int epid = srt_epoll_create();
+  if (epid < 0) {
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+  }
+  return Napi::Number::New(env, epid);
 }
 
 Napi::Value NodeSRT::EpollAddUsock(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
 
+  Napi::Number epidValue = info[0].As<Napi::Number>();
+  Napi::Number socketValue = info[1].As<Napi::Number>();
+  Napi::Number eventsValue = info[2].As<Napi::Number>();
+
+  int events = eventsValue;
+  int result = srt_epoll_add_usock(epidValue, socketValue, &events);
+  if (result == SRT_ERROR) {
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+  }
+  return Napi::Number::New(env, result);
 }
 
-Napi::Value NodeSRT::EpollWait(const Napi::CallbackInfo& info) {
+Napi::Value NodeSRT::EpollUWait(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+  
+  Napi::Number epidValue = info[0].As<Napi::Number>();
+  Napi::Number msTimeOut = info[1].As<Napi::Number>();
 
+  int fdsSetSize = 100;
+  SRT_EPOLL_EVENT fdsSet[fdsSetSize];
+  int n = srt_epoll_uwait(epidValue, fdsSet, fdsSetSize, msTimeOut);
+  Napi::Array events = Napi::Array::New(env, n);
+  for(int i = 0; i < n; i++) {
+    Napi::Object event = Napi::Object::New(env);
+    event.Set(Napi::String::New(env, "socket"), Napi::Number::New(env, fdsSet[i].fd));
+    event.Set(Napi::String::New(env, "events"), Napi::Number::New(env, fdsSet[i].events));
+    events[i] = event;
+  }
+
+  return events;
 }

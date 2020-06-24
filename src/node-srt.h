@@ -22,5 +22,5 @@ class NodeSRT : public Napi::ObjectWrap<NodeSRT> {
 
     Napi::Value EpollCreate(const Napi::CallbackInfo& info);
     Napi::Value EpollAddUsock(const Napi::CallbackInfo& info);
-    Napi::Value EpollWait(const Napi::CallbackInfo& info);
+    Napi::Value EpollUWait(const Napi::CallbackInfo& info);
 };

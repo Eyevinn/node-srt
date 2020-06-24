@@ -42,4 +42,16 @@ describe("SRT library", () => {
     const value = srt.getSockOpt(socket, SRT.SRTO_RCVSYN);
     expect(value).toEqual(false);
   });
+
+  it("can setup non-blocking event poll", () => {
+    const srt = new SRT();
+    const socket = srt.createSocket();
+    srt.setSockOpt(socket, SRT.SRTO_RCVSYN, false);
+    srt.bind(socket, "0.0.0.0", 1234);
+    srt.listen(socket, 10);
+    const epid = srt.epollCreate();
+    srt.epollAddUsock(epid, socket, SRT.EPOLL_IN | SRT.EPOLL_ERR);
+    const events = srt.epollUWait(epid, 500);
+    expect(events.length).toEqual(0);
+  });
 });
