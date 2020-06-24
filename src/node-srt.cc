@@ -21,10 +21,15 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("close", &NodeSRT::Close),
     InstanceMethod("read", &NodeSRT::Read),
     InstanceMethod("write", &NodeSRT::Write),
+    InstanceMethod("setSockOpt", &NodeSRT::SetSockOpt),
+    InstanceMethod("getSockOpt", &NodeSRT::GetSockOpt),
+
+    StaticValue("ERROR", Napi::Number::New(env, -1)),
+    StaticValue("INVALID_SOCK", Napi::Number::New(env, -1)),
 
     StaticValue("SRTO_MSS", Napi::Number::New(env, 0)),
     StaticValue("SRTO_SNDSYN", Napi::Number::New(env, 1)),
-
+    
   });
 
   constructor = Napi::Persistent(func);
@@ -203,4 +208,56 @@ Napi::Value NodeSRT::Write(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, SRT_ERROR);
   }
   return Napi::Number::New(env, result);
+}
+
+Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Number option = info[1].As<Napi::Number>();
+  int result = SRT_ERROR;
+
+  if (info[2].IsNumber()) {
+    Napi::Number value = info[2].As<Napi::Number>();
+    int32_t optName = option;
+    int optValue = value;
+    result = srt_setsockflag(socketValue, (SRT_SOCKOPT)optName, &optValue, sizeof(int));
+    if (result == SRT_ERROR) {
+      Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+      return Napi::Number::New(env, SRT_ERROR);
+    }
+  }
+  return Napi::Number::New(env, result);
+}
+
+Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Number option = info[1].As<Napi::Number>();
+
+  Napi::Value empty;
+  int32_t optName = option;
+  int result = SRT_ERROR;
+
+  switch((SRT_SOCKOPT)optName) {
+    case SRTO_MSS:
+      {
+        int optValue;
+        int optSize = sizeof(optValue);
+        result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
+        return Napi::Value::From(env, optValue);
+      }
+    default:
+      Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
+      break;
+  }
+  
+  if (result == SRT_ERROR) {
+    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return empty;
+  }
+  return empty;
 }
