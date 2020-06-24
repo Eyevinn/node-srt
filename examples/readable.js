@@ -7,6 +7,7 @@ if (process.argv[2] === "listener") {
   srt.listen(readStream => {
     readStream.pipe(dest);
   });
+  console.log("async listen");
 } else {
   const srt = new SRTReadStream('127.0.0.1', 1234);
   srt.connect(readStream => {

@@ -24,12 +24,30 @@ class SRTReadStream extends Readable {
 
   listen(cb) {
     this.srt.bind(this.socket, this.address, this.port);
-    this.srt.listen(this.socket, 2);
-    debug("Waiting for client");
-    this.fd = this.srt.accept(this.socket);
-    if (this.fd) {
-      cb(this);
-    }
+    this.srt.listen(this.socket, 10);
+
+    const epid = this.srt.epollCreate();
+    this.srt.epollAddUsock(epid, this.socket, LIB.SRT.EPOLL_IN | LIB.SRT.EPOLL_ERR);
+    
+    let t = setInterval(() => {
+      const events = this.srt.epollUWait(epid, 1000);
+      events.forEach(event => {
+        const status = this.srt.getSockState(event.socket);
+        if (status === LIB.SRT.SRTS_BROKEN || status === LIB.SRT.SRTS_NONEXIST || status === LIB.SRT.SRTS_CLOSED) {
+          debug("Client disconnected");
+          this.srt.close(event.socket);
+        } else if (event.socket === this.socket) {
+          const fhandle = this.srt.accept(this.socket);
+          debug("New connection");
+          this.srt.epollAddUsock(epid, fhandle, LIB.SRT.EPOLL_IN | LIB.SRT.EPOLL_ERR);
+        } else {
+          debug("Data from client");
+          this.fd = event.socket;
+          clearInterval(t);
+          cb(this);
+        }
+      });
+    }, 500);
   }
 
   connect(cb) {
