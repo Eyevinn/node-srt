@@ -18,6 +18,13 @@ describe("SRT library", () => {
     expect(socket).not.toEqual(SRT.ERROR);
   });
 
+  it("can get socket state", () => {
+    const srt = new SRT();
+    const socket = srt.createSocket();
+    const state = srt.getSockState(socket);
+    expect(state).toEqual(SRT.SRTS_INIT);
+  });
+
   it("can set SRT sockopt SRTO_MSS", () => {
     const srt = new SRT();
     const socket = srt.createSocket();

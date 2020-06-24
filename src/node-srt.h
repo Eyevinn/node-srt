@@ -18,4 +18,9 @@ class NodeSRT : public Napi::ObjectWrap<NodeSRT> {
     Napi::Value Write(const Napi::CallbackInfo& info);
     Napi::Value SetSockOpt(const Napi::CallbackInfo& info);
     Napi::Value GetSockOpt(const Napi::CallbackInfo& info);
+    Napi::Value GetSockState(const Napi::CallbackInfo& info);
+
+    Napi::Value EpollCreate(const Napi::CallbackInfo& info);
+    Napi::Value EpollAddUsock(const Napi::CallbackInfo& info);
+    Napi::Value EpollWait(const Napi::CallbackInfo& info);
 };

@@ -23,14 +23,33 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("write", &NodeSRT::Write),
     InstanceMethod("setSockOpt", &NodeSRT::SetSockOpt),
     InstanceMethod("getSockOpt", &NodeSRT::GetSockOpt),
+    InstanceMethod("getSockState", &NodeSRT::GetSockState),
+    InstanceMethod("epollCreate", &NodeSRT::EpollCreate),
+    InstanceMethod("epollAddUsock", &NodeSRT::EpollAddUsock),
+    InstanceMethod("epollWait", &NodeSRT::EpollWait),
 
-    StaticValue("ERROR", Napi::Number::New(env, -1)),
-    StaticValue("INVALID_SOCK", Napi::Number::New(env, -1)),
+    StaticValue("ERROR", Napi::Number::New(env, SRT_ERROR)),
+    StaticValue("INVALID_SOCK", Napi::Number::New(env, SRT_INVALID_SOCK)),
 
-    StaticValue("SRTO_MSS", Napi::Number::New(env, 0)),
-    StaticValue("SRTO_SNDSYN", Napi::Number::New(env, 1)),
-    StaticValue("SRTO_RCVSYN", Napi::Number::New(env, 2)),
+    // Socket options
+    StaticValue("SRTO_MSS", Napi::Number::New(env, SRTO_MSS)),
+    StaticValue("SRTO_SNDSYN", Napi::Number::New(env, SRTO_SNDSYN)),
+    StaticValue("SRTO_RCVSYN", Napi::Number::New(env, SRTO_RCVSYN)),
     
+    // Socket status
+    StaticValue("SRTS_INIT", Napi::Number::New(env, SRTS_INIT)),
+    StaticValue("SRTS_OPENED", Napi::Number::New(env, SRTS_OPENED)),
+    StaticValue("SRTS_LISTENING", Napi::Number::New(env, SRTS_LISTENING)),
+    StaticValue("SRTS_CONNECTING", Napi::Number::New(env, SRTS_CONNECTING)),
+    StaticValue("SRTS_CONNECTED", Napi::Number::New(env, SRTS_CONNECTED)),
+    StaticValue("SRTS_BROKEN", Napi::Number::New(env, SRTS_BROKEN)),
+    StaticValue("SRTS_NONEXIST", Napi::Number::New(env, SRTS_NONEXIST)),
+
+    // Epoll options
+    StaticValue("EPOLL_IN", Napi::Number::New(env, SRT_EPOLL_IN)),
+    StaticValue("EPOLL_OUT", Napi::Number::New(env, SRT_EPOLL_OUT)),
+    StaticValue("EPOLL_ERR", Napi::Number::New(env, SRT_EPOLL_ERR)),
+    StaticValue("EPOLL_ET", Napi::Number::New(env, SRT_EPOLL_ET)),
   });
 
   constructor = Napi::Persistent(func);
@@ -277,4 +296,24 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
     return empty;
   }
   return empty;
+}
+
+Napi::Value NodeSRT::GetSockState(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  return Napi::Number::New(env, srt_getsockstate(socketValue));
+}
+
+Napi::Value NodeSRT::EpollCreate(const Napi::CallbackInfo& info) {
+  
+}
+
+Napi::Value NodeSRT::EpollAddUsock(const Napi::CallbackInfo& info) {
+
+}
+
+Napi::Value NodeSRT::EpollWait(const Napi::CallbackInfo& info) {
+
 }
