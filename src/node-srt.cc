@@ -6,6 +6,7 @@
 #include <sys/syslog.h>
 #endif
 #include "node-srt.h"
+#include "srt-enums.h"
 
 Napi::FunctionReference NodeSRT::constructor;
 
@@ -32,18 +33,10 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     StaticValue("INVALID_SOCK", Napi::Number::New(env, SRT_INVALID_SOCK)),
 
     // Socket options
-    StaticValue("SRTO_MSS", Napi::Number::New(env, SRTO_MSS)),
-    StaticValue("SRTO_SNDSYN", Napi::Number::New(env, SRTO_SNDSYN)),
-    StaticValue("SRTO_RCVSYN", Napi::Number::New(env, SRTO_RCVSYN)),
+    SOCKET_OPTIONS,
     
     // Socket status
-    StaticValue("SRTS_INIT", Napi::Number::New(env, SRTS_INIT)),
-    StaticValue("SRTS_OPENED", Napi::Number::New(env, SRTS_OPENED)),
-    StaticValue("SRTS_LISTENING", Napi::Number::New(env, SRTS_LISTENING)),
-    StaticValue("SRTS_CONNECTING", Napi::Number::New(env, SRTS_CONNECTING)),
-    StaticValue("SRTS_CONNECTED", Napi::Number::New(env, SRTS_CONNECTED)),
-    StaticValue("SRTS_BROKEN", Napi::Number::New(env, SRTS_BROKEN)),
-    StaticValue("SRTS_NONEXIST", Napi::Number::New(env, SRTS_NONEXIST)),
+    SOCKET_STATUS,
 
     // Epoll options
     StaticValue("EPOLL_IN", Napi::Number::New(env, SRT_EPOLL_IN)),
@@ -273,6 +266,42 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
 
   switch((SRT_SOCKOPT)optName) {
     case SRTO_MSS:
+    case SRTO_CONNTIMEO:
+    case SRTO_EVENT:
+    case SRTO_FC:
+    case SRTO_INPUTBW:
+    case SRTO_IPTOS:
+    case SRTO_ISN:
+    case SRTO_IPTTL:
+    case SRTO_IPV6ONLY:
+    case SRTO_KMREFRESHRATE:
+    case SRTO_KMPREANNOUNCE:
+    case SRTO_KMSTATE:
+    case SRTO_LATENCY:
+    case SRTO_LOSSMAXTTL:
+    case SRTO_MAXBW: 
+    case SRTO_MINVERSION:
+    case SRTO_OHEADBW:
+    case SRTO_PAYLOADSIZE:
+    case SRTO_PBKEYLEN:
+    case SRTO_PEERIDLETIMEO:
+    case SRTO_PEERLATENCY:
+    case SRTO_PEERVERSION:
+    case SRTO_RCVBUF:
+    case SRTO_RCVDATA:
+    case SRTO_RCVLATENCY:
+    case SRTO_RCVTIMEO:
+    case SRTO_SNDBUF:
+    case SRTO_SNDDATA:
+    case SRTO_SNDDROPDELAY:
+    case SRTO_SNDTIMEO:
+    case SRTO_STATE:
+    case SRTO_ENFORCEDENCRYPTION:
+    case SRTO_TLPKTDROP:
+    case SRTO_TSBPDMODE:
+    case SRTO_UDP_RCVBUF:
+    case SRTO_UDP_SNDBUF:
+    case SRTO_VERSION:
     {
       int optValue;
       int optSize = sizeof(optValue);
@@ -280,11 +309,24 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       return Napi::Value::From(env, optValue);
     }
     case SRTO_RCVSYN:
+    case SRTO_MESSAGEAPI:
+    case SRTO_NAKREPORT:
+    case SRTO_RENDEZVOUS:
+    case SRTO_SENDER:
+    case SRTO_SNDSYN:
     {
       bool optValue;
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
       return Napi::Value::From(env, optValue);
+    }
+    case SRTO_PACKETFILTER:
+    case SRTO_PASSPHRASE:
+    {
+      char optValue[512];
+      int optSize = sizeof(optValue);
+      result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
+      return Napi::Value::From(env, std::string(optValue));
     }
     default:
       Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
