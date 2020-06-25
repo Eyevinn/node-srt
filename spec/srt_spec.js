@@ -54,4 +54,9 @@ describe("SRT library", () => {
     const events = srt.epollUWait(epid, 500);
     expect(events.length).toEqual(0);
   });
+
+  it("exposes socket options", () => {
+    expect(SRT.SRTO_UDP_SNDBUF).toEqual(8);
+    expect(SRT.SRTO_RCVLATENCY).toEqual(43);
+  });
 });
