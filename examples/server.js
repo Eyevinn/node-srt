@@ -1,11 +1,14 @@
-const { Server } = require('../index.js');
+const fs = require('fs');
+const { SRTReadStream } = require('../index.js');
 
-const srtServer = new Server();
-
-srtServer.on("message", (msg, rinfo) => {
-
+const dest = fs.createWriteStream('./output');
+const srt = new SRTReadStream('0.0.0.0', 1234);
+srt.listen(readStream => {
+  console.log("Client connected");
+  readStream.pipe(dest);
 });
-srtServer.on("listening", (address, port) => {
-  console.log(`SRT server listening on ${address}:${port}`);
+srt.on('end', () => {
+  console.log("Client disconnected");
 });
-srtServer.listen({ port: 1234 });
+
+console.log("Waiting for client to connect");
