@@ -36,6 +36,7 @@ class SRTReadStream extends Readable {
         if (status === LIB.SRT.SRTS_BROKEN || status === LIB.SRT.SRTS_NONEXIST || status === LIB.SRT.SRTS_CLOSED) {
           debug("Client disconnected");
           this.srt.close(event.socket);
+          this.emit('end');
         } else if (event.socket === this.socket) {
           const fhandle = this.srt.accept(this.socket);
           debug("New connection");
@@ -91,9 +92,23 @@ class SRTWriteStream extends Writable {
     }
   }
 
+  close() {
+    this.srt.close(this.socket);
+    this.fd = null;
+  }
+
   _write(chunk, encoding, callback) {
-    this.srt.write(this.fd, chunk);
-    callback();
+    debug(`Writing chunk ${chunk.length}`);
+    if (this.fd) {
+      this.srt.write(this.fd, chunk);
+      callback();
+    } else {
+      callback(new Error("Socket was closed"));
+    }
+  }
+
+  _destroy(err, callback) {
+    this.close();
   }
 }
 
