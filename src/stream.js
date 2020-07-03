@@ -20,6 +20,7 @@ class SRTReadStream extends Readable {
     this.socket = this.srt.createSocket();
     this.address = address;
     this.port = port;
+    this.readTimer = null;
   }
 
   listen(cb) {
@@ -36,6 +37,7 @@ class SRTReadStream extends Readable {
         if (status === LIB.SRT.SRTS_BROKEN || status === LIB.SRT.SRTS_NONEXIST || status === LIB.SRT.SRTS_CLOSED) {
           debug("Client disconnected");
           this.srt.close(event.socket);
+          this.push(null);
           this.emit('end');
         } else if (event.socket === this.socket) {
           const fhandle = this.srt.accept(this.socket);
@@ -59,19 +61,22 @@ class SRTReadStream extends Readable {
     }
   }
 
-  _read(size) {
-    let chunk;
-    try {  
-      chunk = this.srt.read(this.fd, size);
+  _readStart(fd, size) {
+    this.readTimer = setInterval(() => {
+      let chunk = this.srt.read(fd, size);
       debug(`Read chunk ${chunk.length}`);
-      while (!this.push(chunk)) {
-        debug(`Read chunk ${chunk.length}`);
-        chunk = this.srt.read(this.fd, size);
+      if (!this.push(chunk)) {
+        this._readStop();
       }
-    } catch (exc) {
-      debug(exc.message);
-      this.push(null);
-    }
+    }, 100);
+  }
+
+  _readStop() {
+    clearInterval(this.readTimer);
+  }
+
+  _read(size) {
+    this._readStart(this.fd, size);
   }
 }
 

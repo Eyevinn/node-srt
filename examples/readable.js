@@ -2,6 +2,10 @@ const fs = require('fs');
 const dest = fs.createWriteStream('./output');
 const { SRTReadStream } = require('../index.js');
 
+setInterval(() => {
+  console.log("Hey, I am still alive!");
+}, 2000);
+
 if (process.argv[2] === "listener") {
   const srt = new SRTReadStream('0.0.0.0', 1234);
   srt.listen(readStream => {
