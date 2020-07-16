@@ -62,6 +62,11 @@ class SRTReadStream extends Readable {
     }
   }
 
+  close() {
+    this.srt.close(this.socket);
+    this.fd = null;
+  }
+
   _readStart(fd, size) {
     this.readTimer = setInterval(() => {
       let chunk = this.srt.read(fd, size);
