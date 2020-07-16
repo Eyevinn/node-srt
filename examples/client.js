@@ -10,7 +10,7 @@ srt.connect(writeStream => {
 });
 srt.on('error', err => {
   console.error(err.message);
-})
+});
 
 process.on('SIGINT', () => {
   console.log("Closing connection");
