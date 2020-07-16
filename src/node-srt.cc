@@ -261,6 +261,8 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
   Napi::Number option = info[1].As<Napi::Number>();
 
   Napi::Value empty;
+  Napi::Value returnVal;
+
   int32_t optName = option;
   int result = SRT_ERROR;
 
@@ -306,7 +308,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       int optValue;
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
-      return Napi::Value::From(env, optValue);
+      returnVal = Napi::Value::From(env, optValue);
     }
     case SRTO_RCVSYN:
     case SRTO_MESSAGEAPI:
@@ -318,7 +320,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       bool optValue;
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
-      return Napi::Value::From(env, optValue);
+      returnVal = Napi::Value::From(env, optValue);
     }
     case SRTO_PACKETFILTER:
     case SRTO_PASSPHRASE:
@@ -326,7 +328,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       char optValue[512];
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
-      return Napi::Value::From(env, std::string(optValue));
+      returnVal = Napi::Value::From(env, std::string(optValue));
     }
     default:
       Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
@@ -337,7 +339,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return empty;
   }
-  return empty;
+  return returnVal;
 }
 
 Napi::Value NodeSRT::GetSockState(const Napi::CallbackInfo& info) {
