@@ -20,6 +20,7 @@ class SRTReadStream extends Readable {
     this.socket = this.srt.createSocket();
     this.address = address;
     this.port = port;
+    this.fd = null;
     this.readTimer = null;
   }
 
