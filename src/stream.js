@@ -1,4 +1,4 @@
-const { Readable, Writable } = require('stream');
+const { Readable, Writable } = require('stream');
 const LIB = require('../build/Release/node_srt.node');
 const debug = require('debug')('srt-stream');
 
@@ -132,4 +132,4 @@ class SRTWriteStream extends Writable {
 module.exports = {
   SRTReadStream,
   SRTWriteStream
-}
+};
