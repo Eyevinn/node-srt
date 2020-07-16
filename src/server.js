@@ -1,5 +1,6 @@
 const { SRT } = require('../build/Release/node_srt.node');
 const EventEmitter = require("events");
+const debug = require('debug')('srt-server');
 
 const libSRT = new SRT();
 
@@ -16,7 +17,7 @@ class SRTServer extends EventEmitter {
     this.emit("listening", iface, port);
     while (true) {
       const fhandle = libSRT.accept(this.socket);
-      console.log("Client connected");
+      debug("New client connected");
     }
   }
 }
