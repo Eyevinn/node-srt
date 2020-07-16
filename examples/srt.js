@@ -1,3 +1,5 @@
+"use strict";
+
 const { SRT } = require('../index.js');
 
 const srt = new SRT();
