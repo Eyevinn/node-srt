@@ -13,7 +13,7 @@ declare module "srt" {
     port: number
   }
 
-  type SRTServerEvent = "listening" /*| "foobar" */;
+  type SRTServerEvent = "listening"; /*| "foobar" */
 
   class SRTServer extends EventEmitter /*<SRTServerEvent>*/ {
     listen(opts: SRTServerBindOpts): void
