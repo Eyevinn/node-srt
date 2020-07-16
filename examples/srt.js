@@ -24,7 +24,7 @@ if (!result) {
 }
 
 console.log("Waiting for client to connect");
-fhandle = srt.accept(socket);
+const fhandle = srt.accept(socket);
 
 if (fhandle) {
   console.log("Client connected");
