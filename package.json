@@ -9,6 +9,7 @@
     "rebuild": "node-gyp rebuild",
     "clean": "node-gyp clean",
     "test": "$(npm bin)/jasmine",
+    "lint": "eslint src examples types --ext .js --ext .ts",
     "check-tsc": "./node_modules/.bin/tsc examples/srt.ts --outDir ./tsc-lib",
     "postversion": "git push && git push --tags"
   },
