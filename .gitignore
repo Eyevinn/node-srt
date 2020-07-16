@@ -1,5 +1,6 @@
 node_modules
 build
+tsc-lib
 deps
 output
 .vscode
