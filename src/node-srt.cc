@@ -281,7 +281,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
     case SRTO_KMSTATE:
     case SRTO_LATENCY:
     case SRTO_LOSSMAXTTL:
-    case SRTO_MAXBW: 
+    case SRTO_MAXBW:
     case SRTO_MINVERSION:
     case SRTO_OHEADBW:
     case SRTO_PAYLOADSIZE:

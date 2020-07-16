@@ -6,7 +6,7 @@ const srt = new SRT();
 const socket = srt.createSocket();
 if (socket !== -1) {
   console.log("Created socket: " + socket);
-} 
+}
 
 let result;
 result = srt.bind(socket, "0.0.0.0", 1234);
