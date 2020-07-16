@@ -2,18 +2,24 @@ const { Readable, Writable } = require('stream');
 const LIB = require('../build/Release/node_srt.node');
 const debug = require('debug')('srt-stream');
 
+const EPOLLUWAIT_CALL_PERIOD_MS = 500;
+const EPOLLUWAIT_TIMEOUT_MS = 1000;
+const SOCKET_LISTEN_BACKLOG = 10;
+
 /**
  * Example:
- * 
+ *
  * const dest = fs.createWritableStream('./output');
- * 
+ *
  * const srt = new SRTReadStream('0.0.0.0', 1234);
  * srt.listen(readStream => {
  *   readStream.pipe(dest);
  * })
- * 
+ *
  */
 class SRTReadStream extends Readable {
+  // Q: opts not used ?
+  // Q: not better if port (mandatory) is before, and address is optional (default to "0.0.0.0")?
   constructor(address, port, opts) {
     super();
     this.srt = new LIB.SRT();
@@ -26,13 +32,13 @@ class SRTReadStream extends Readable {
 
   listen(cb) {
     this.srt.bind(this.socket, this.address, this.port);
-    this.srt.listen(this.socket, 10);
+    this.srt.listen(this.socket, SOCKET_LISTEN_BACKLOG);
 
     const epid = this.srt.epollCreate();
     this.srt.epollAddUsock(epid, this.socket, LIB.SRT.EPOLL_IN | LIB.SRT.EPOLL_ERR);
-    
+
     let t = setInterval(() => {
-      const events = this.srt.epollUWait(epid, 1000);
+      const events = this.srt.epollUWait(epid, EPOLLUWAIT_TIMEOUT_MS);
       events.forEach(event => {
         const status = this.srt.getSockState(event.socket);
         if (status === LIB.SRT.SRTS_BROKEN || status === LIB.SRT.SRTS_NONEXIST || status === LIB.SRT.SRTS_CLOSED) {
@@ -51,7 +57,7 @@ class SRTReadStream extends Readable {
           cb(this);
         }
       });
-    }, 500);
+    }, EPOLLUWAIT_CALL_PERIOD_MS);
   }
 
   connect(cb) {
