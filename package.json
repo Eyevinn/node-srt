@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Eyevinn/node-srt"
+    "url": "git+https://github.com/Eyevinn/node-srt.git"
   },
   "gypfile": true,
   "author": "Eyevinn Technology AB <work@eyevinn.se>",
@@ -30,5 +30,24 @@
     "debug": "^4.1.1",
     "git-clone": "^0.1.0",
     "node-addon-api": "^3.0.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Eyevinn/node-srt/issues"
+  },
+  "homepage": "https://github.com/Eyevinn/node-srt#readme",
+  "directories": {
+    "example": "examples"
+  },
+  "keywords": [
+    "SRT",
+    "Secure",
+    "Reliable",
+    "Transport",
+    "Network",
+    "Protocol",
+    "UDP",
+    "Retransmission",
+    "Congestion",
+    "Control"
+  ]
 }
