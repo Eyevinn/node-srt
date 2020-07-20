@@ -21,7 +21,8 @@
   "author": "Eyevinn Technology AB <work@eyevinn.se>",
   "contributors": [
     "Jonas Rydholm Birmé <jonas.birme@eyevinn.se> (Eyevinn Technology AB)",
-    "Dillon Pentz <dillon@vodbox.io>"
+    "Dillon Pentz <dillon@vodbox.io>",
+    "Stephan Hesse <stephan@emliri.com>"
   ],
   "license": "MIT",
   "devDependencies": {
