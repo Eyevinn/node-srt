@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require('fs');
 const dest = fs.createWriteStream('./output');
 const { SRTReadStream } = require('../index.js');

@@ -1,10 +1,12 @@
+"use strict";
+
 const { SRT } = require('../index.js');
 
 const srt = new SRT();
 const socket = srt.createSocket();
 if (socket !== -1) {
   console.log("Created socket: " + socket);
-} 
+}
 
 let result;
 
@@ -41,7 +43,7 @@ while (true) {
     } else {
       while (true) {
         const chunk = srt.read(event.socket, 1316);
-        console.log("Read chunk: " + chunk.length);      
+        console.log("Read chunk: " + chunk.length);
       }
     }
   });

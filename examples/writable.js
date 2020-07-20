@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require('fs');
 const source = fs.createReadStream(process.argv[2], { highWaterMark: 1316 });
 const { SRTWriteStream } = require('../index.js');

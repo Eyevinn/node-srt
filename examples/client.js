@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require('fs');
 const { SRTWriteStream } = require('../index.js');
 
@@ -8,7 +10,7 @@ srt.connect(writeStream => {
 });
 srt.on('error', err => {
   console.error(err.message);
-})
+});
 
 process.on('SIGINT', () => {
   console.log("Closing connection");

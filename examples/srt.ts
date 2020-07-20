@@ -1,6 +1,4 @@
-"use strict";
-
-const { SRT } = require('../index.js');
+import {SRT} from '../index';
 
 const srt = new SRT();
 const socket = srt.createSocket();
