@@ -9,12 +9,14 @@ describe("SRT library", () => {
   it("can create an SRT socket", () => {
     const srt = new SRT();
     const socket = srt.createSocket();
+
     expect(socket).not.toEqual(SRT.ERROR);
   });
 
   it("can create an SRT socket for sending data", () => {
     const srt = new SRT();
     const socket = srt.createSocket(true);
+
     expect(socket).not.toEqual(SRT.ERROR);
   });
 
@@ -22,6 +24,7 @@ describe("SRT library", () => {
     const srt = new SRT();
     const socket = srt.createSocket();
     const state = srt.getSockState(socket);
+
     expect(state).toEqual(SRT.SRTS_INIT);
   });
 
@@ -29,8 +32,10 @@ describe("SRT library", () => {
     const srt = new SRT();
     const socket = srt.createSocket();
     const result = srt.setSockOpt(socket, SRT.SRTO_MSS, 1052);
+
     expect(result).not.toEqual(SRT.ERROR);
     const value = srt.getSockOpt(socket, SRT.SRTO_MSS);
+
     expect(value).toEqual(1052);
   });
 
@@ -38,8 +43,10 @@ describe("SRT library", () => {
     const srt = new SRT();
     const socket = srt.createSocket();
     const result = srt.setSockOpt(socket, SRT.SRTO_RCVSYN, false);
+
     expect(result).not.toEqual(SRT.ERROR);
     const value = srt.getSockOpt(socket, SRT.SRTO_RCVSYN);
+
     expect(value).toEqual(false);
   });
 
@@ -52,6 +59,7 @@ describe("SRT library", () => {
     const epid = srt.epollCreate();
     srt.epollAddUsock(epid, socket, SRT.EPOLL_IN | SRT.EPOLL_ERR);
     const events = srt.epollUWait(epid, 500);
+    
     expect(events.length).toEqual(0);
   });
 
