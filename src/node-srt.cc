@@ -309,6 +309,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
       returnVal = Napi::Value::From(env, optValue);
+      break;
     }
     case SRTO_RCVSYN:
     case SRTO_MESSAGEAPI:
@@ -321,6 +322,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
       returnVal = Napi::Value::From(env, optValue);
+      break;
     }
     case SRTO_PACKETFILTER:
     case SRTO_PASSPHRASE:
@@ -329,6 +331,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
       returnVal = Napi::Value::From(env, std::string(optValue));
+      break;
     }
     default:
       Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
