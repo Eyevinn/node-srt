@@ -7,4 +7,4 @@ module.exports = {
   Server: Server,
   SRTReadStream,
   SRTWriteStream
-}
+};
