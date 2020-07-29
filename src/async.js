@@ -28,6 +28,7 @@ class AsyncSRT {
     this._workCbMap = new Map();
     */
     this._workCbQueue = [];
+    this._workCbListRejected = [];
   }
 
   _onWorkerMessage(data) {
@@ -64,20 +65,28 @@ class AsyncSRT {
    * @param {Array} args optional
    * @param {Function} callback optional
    */
-  _createAsyncWorkPromise(method, args = [], callback = null, useTimeout = true) {
+  _createAsyncWorkPromise(method, args = [], callback = null, useTimeout = true, timeoutMs = AsyncSRT.TimeoutMs) {
     return new Promise((resolve, reject) => {
       let timeout;
-      if (useTimeout) {
-        timeout = setTimeout(() => {
-          reject(new Error('Timeout exceeded while awaiting result from worker running native-addon module functions'));
-        }, PROMISE_TIMEOUT_MS);
-      }
+      let rejected = false;
       const onResult = (result) => {
-        if (useTimeout) clearTimeout(timeout);
+        // Q: signal somehow to app that timed-out call has had result after all? (only in case of using Promise..?)
+        if (rejected) {
+          // The reject thing only makes sense for Promise,
+          // and users can manage this aspect themselves when using plain callbacks.
+          if (callback) callback(result);
+          return;
+        } else if (useTimeout) clearTimeout(timeout);
         resolve(result);
         if (callback) callback(result); // NOTE: the order doesn't matter for us,
         //      but intuitively the promise result should probably be resolved first.
       };
+      if (useTimeout) {
+        timeout = setTimeout(() => {
+          reject(new Error('Timeout exceeded while awaiting result from worker running native-addon module functions'));
+          rejected = true;
+        }, timeoutMs);
+      }
       this._postAsyncWork(method, args, onResult);
     });
   }
