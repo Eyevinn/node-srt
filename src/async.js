@@ -206,7 +206,7 @@ class AsyncSRT {
    * @param msTimeOut
    */
   epollUWait(epid, msTimeOut, callback) {
-    return this._createAsyncWorkPromise("epollAddUsock", [epid, msTimeOut], callback);
+    return this._createAsyncWorkPromise("epollUWait", [epid, msTimeOut], callback);
   }
 }
 
