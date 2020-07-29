@@ -6,13 +6,19 @@ const path = require('path');
 
 const {performance} = require("perf_hooks");
 
-const PROMISE_TIMEOUT_MS = 3000;
+const DEFAULT_PROMISE_TIMEOUT_MS = 3000;
 
 /*
 const WORK_ID_GEN_MOD = 0xFFF;
 */
 
 class AsyncSRT {
+
+  /**
+   * @static
+   * @type {number} Promise-timeout in millis
+   */
+  static TimeoutMs = DEFAULT_PROMISE_TIMEOUT_MS;
 
   constructor() {
     this._worker = new Worker(path.resolve(__dirname, './async-worker.js'));
@@ -119,8 +125,8 @@ class AsyncSRT {
    * @param socket
    * @returns File descriptor of incoming connection pipe
    */
-  accept(socket, callback) {
-    return this._createAsyncWorkPromise("accept", [socket], callback, false);
+  accept(socket, callback, useTimeout = false, timeoutMs = AsyncSRT.TimeoutMs) {
+    return this._createAsyncWorkPromise("accept", [socket], callback, useTimeout, timeoutMs);
   }
 
   /**
