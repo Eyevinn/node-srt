@@ -3,7 +3,6 @@ const {
 } = require('worker_threads');
 
 const path = require('path');
-
 const {performance} = require("perf_hooks");
 
 const DEFAULT_PROMISE_TIMEOUT_MS = 3000;
@@ -30,6 +29,10 @@ class AsyncSRT {
     this._workCbQueue = [];
   }
 
+  /**
+   * @private
+   * @param {*} data
+   */
   _onWorkerMessage(data) {
     const resolveTime = performance.now();
     const {timestamp, result, workId} = data;
@@ -38,6 +41,12 @@ class AsyncSRT {
     callback(result);
   }
 
+  /**
+   * @private
+   * @param {string} method
+   * @param {Array<any>} args
+   * @param {Function} callback
+   */
   _postAsyncWork(method, args, callback) {
     const timestamp = performance.now();
 
@@ -59,9 +68,9 @@ class AsyncSRT {
   }
 
   /**
-   *
+   * @private
    * @param {string} method
-   * @param {Array} args optional
+   * @param {Array<any>} args optional
    * @param {Function} callback optional
    */
   _createAsyncWorkPromise(method, args = [], callback = null, useTimeout = true, timeoutMs = AsyncSRT.TimeoutMs) {
