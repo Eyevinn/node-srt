@@ -28,7 +28,6 @@ class AsyncSRT {
     this._workCbMap = new Map();
     */
     this._workCbQueue = [];
-    this._workCbListRejected = [];
   }
 
   _onWorkerMessage(data) {
