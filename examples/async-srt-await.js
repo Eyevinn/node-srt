@@ -22,4 +22,4 @@ async function awaitConnections(socket) {
 
 setInterval(() => {
   console.log('Doing other stuff in the meantime ... :)');
-}, 1000)
+}, 1000);
