@@ -48,7 +48,7 @@ declare module "srt" {
      * @param socket
      * @param chunkSize
      */
-    read(socket: number, chunkSize: number): Buffer
+    read(socket: number, chunkSize: number): SRTReadReturn
 
     /**
      *
@@ -63,14 +63,14 @@ declare module "srt" {
      * @param option
      * @param value
      */
-    setSockOpt(socket: number, option: number, value: SRTSocketOptValue): number
+    setSockOpt(socket: number, option: SRTSockOpt, value: SRTSockOptValue): SRTResult
 
     /**
      *
      * @param socket
      * @param option
      */
-    getSockOpt(socket: number, option: number): SRTSocketOptValue
+    getSockOpt(socket: number, option: SRTSockOpt): SRTSockOptValue
 
     /**
      *
@@ -96,17 +96,19 @@ declare module "srt" {
      * @param epid
      * @param msTimeOut
      */
-    epollUWait(epid: number, msTimeOut: number): SRTPollingEvent[]
+    epollUWait(epid: number, msTimeOut: number): SRTEpollEvent[]
   }
 
-  interface SRTPollingEvent {
+  interface SRTEpollEvent {
     socket: SRTFileDescriptor
     events: number
   }
 
+  type SRTReadReturn = Buffer | SRTResult.SRT_ERROR | null
+
   type SRTFileDescriptor = number;
 
-  type SRTSocketOptValue = boolean | number | string
+  type SRTSockOptValue = boolean | number | string
 
   enum SRTResult {
     SRT_ERROR = -1,
