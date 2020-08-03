@@ -49,6 +49,50 @@ class SRT {
 }
 ```
 
+### Async API
+
+The N-API binding layer to the SRT SDK is such that every native call are blocking I/O and runs synchroneuosly with the wrapping JS function call. This means that these functions are called from the Node.js proc main-thread / event loop. This creates a throughput limit and in general having blocking operations can impact application performance in an unpredictable way. To address this issue we have an "async variant" of the API where the native blocking calls are put on a JS Worker thread instead (big thanks to @tchakabam for this [contribution](https://github.com/Eyevinn/node-srt/pull/6)). The Async API is a candidate to replace the main API in the next major release. Example with async/await:
+
+```
+  const { SRT, AsyncSRT } = require('@eyevinn/srt');
+
+  (async function() {
+    const asyncSrt = new AsyncSRT();
+    const socket = await asyncSrt.createSocket(false);
+    let result = await asyncSrt.bind(socket, "0.0.0.0", 1234);
+    result = await asyncSrt.listen(socket, 2);
+  })();
+```
+
+or with promises:
+
+```
+  const { SRT, AsyncSRT } = require('@eyevinn/srt');
+  const asyncSrt = new AsyncSRT();
+
+  let mySocket;
+  asyncSrt.createSocket(false)
+    .catch((err) => console.error(err))
+    .then((result) => {
+      mySocket = result;
+      return result;
+    })
+    .then((socket) => asyncSrt.bind(socket, "0.0.0.0", 1234))
+    .then((result) => {
+      if (result !== 0) {
+        throw new Error('Failed bind');
+      }
+      return asyncSrt.listen(mySocket, 2);
+    })
+    .then((result) => {
+      if (!result) {
+        console.log("Listen success");
+      } else {
+        throw new Error('SRT listen error: ' + result);
+      }
+    });  
+```
+
 ### Readable Stream
 A custom readable stream API is also available, example (in listener mode):
 
