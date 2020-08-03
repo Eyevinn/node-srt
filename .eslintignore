@@ -1,0 +1,4 @@
+build
+deps
+node_modules
+tsc-lib
