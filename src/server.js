@@ -21,7 +21,8 @@ class SRTServer extends EventEmitter {
     this.emit("listening", iface, port);
     while (true) {
       const fhandle = libSRT.accept(this.socket);
-      debug("New client connected");
+      debug("Client connection accepted");
+      this.emit("accepted", fhandle);
     }
   }
 }
