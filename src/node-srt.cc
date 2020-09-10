@@ -389,7 +389,7 @@ Napi::Value NodeSRT::EpollUWait(const Napi::CallbackInfo& info) {
   Napi::Number epidValue = info[0].As<Napi::Number>();
   Napi::Number msTimeOut = info[1].As<Napi::Number>();
 
-  int fdsSetSize = 100;
+  const int fdsSetSize = 100;
   SRT_EPOLL_EVENT fdsSet[fdsSetSize];
   int n = srt_epoll_uwait(epidValue, fdsSet, fdsSetSize, msTimeOut);
   Napi::Array events = Napi::Array::New(env, n);
