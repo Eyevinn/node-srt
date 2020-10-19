@@ -1,107 +1,115 @@
-declare module "srt" {
 
-  type AsyncSRTCallback<T> = (result: T) => void;
+import { SRTLoggingLevel, SRTResult, SRTSockOpt, SRTSockStatus } from "../src/srt-api-enums";
 
-  class AsyncSRT {
+import {SRTReadReturn, SRTFileDescriptor, SRTEpollEvent, SRTSockOptValue} from "./srt-api"
 
-    static TimeoutMs: number;
+export type AsyncSRTCallback<T> = (result: T) => void;
 
-    /**
-     *
-     * @param sender
-     * @returns SRTSOCKET identifier (integer value)
-     */
-    createSocket(sender: boolean, callback?: AsyncSRTCallback<number>): Promise<number>
+export class AsyncSRT {
 
-    /**
-     *
-     * @param socket
-     * @param address
-     * @param port
-     */
-    bind(socket: number, address: string, port: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  static TimeoutMs: number;
 
-    /**
-     *
-     * @param socket
-     * @param backlog
-     */
-    listen(socket: number, backlog: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param sender
+   * @returns SRTSOCKET identifier (integer value)
+   */
+  createSocket(sender: boolean, callback?: AsyncSRTCallback<number>): Promise<number>
 
-    /**
-     *
-     * @param socket
-     * @param host
-     * @param port
-     */
-    connect(socket: number, host: string, port: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param socket
+   * @param address
+   * @param port
+   */
+  bind(socket: number, address: string, port: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 
-    /**
-     *
-     * @param socket
-     * @returns File descriptor of incoming connection pipe
-     */
-    accept(socket: number, callback?: AsyncSRTCallback<SRTFileDescriptor>): Promise<SRTFileDescriptor>
+  /**
+   *
+   * @param socket
+   * @param backlog
+   */
+  listen(socket: number, backlog: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 
-    /**
-     *
-     * @param socket
-     */
-    close(socket: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param socket
+   * @param host
+   * @param port
+   */
+  connect(socket: number, host: string, port: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 
-    /**
-     *
-     * @param socket
-     * @param chunkSize
-     */
-    read(socket: number, chunkSize: number, callback?: AsyncSRTCallback<SRTReadReturn>): Promise<SRTReadReturn>
+  /**
+   *
+   * @param socket
+   * @returns File descriptor of incoming connection pipe
+   */
+  accept(socket: number, callback?: AsyncSRTCallback<SRTFileDescriptor>): Promise<SRTFileDescriptor>
 
-    /**
-     *
-     * @param socket
-     * @param chunk
-     */
-    write(socket: number, chunk: Buffer, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param socket
+   */
+  close(socket: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 
-    /**
-     *
-     * @param socket
-     * @param option
-     * @param value
-     */
-    setSockOpt(socket: number, option: SRTSockOpt, value: SRTSockOptValue, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param socket
+   * @param chunkSize
+   */
+  read(socket: number, chunkSize: number, callback?: AsyncSRTCallback<SRTReadReturn>): Promise<SRTReadReturn>
 
-    /**
-     *
-     * @param socket
-     * @param option
-     */
-    getSockOpt(socket: number, option: SRTSockOpt, callback?: AsyncSRTCallback<SRTSockOptValue>): Promise<SRTSockOptValue>
+  /**
+   *
+   * @param socket
+   * @param chunk
+   */
+  write(socket: number, chunk: Buffer, callback?: AsyncSRTCallback<SRTResult>): Promise<number | SRTResult.SRT_ERROR>
 
-    /**
-     *
-     * @param socket
-     */
-    getSockState(socket: number, callback?: AsyncSRTCallback<SRTSockStatus>): Promise<SRTSockStatus>
+  /**
+   *
+   * @param socket
+   * @param option
+   * @param value
+   */
+  setSockOpt(socket: number, option: SRTSockOpt, value: SRTSockOptValue, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 
-    /**
-     * @returns epid
-     */
-    epollCreate(callback?: AsyncSRTCallback<number>): Promise<number>
+  /**
+   *
+   * @param socket
+   * @param option
+   */
+  getSockOpt(socket: number, option: SRTSockOpt, callback?: AsyncSRTCallback<SRTSockOptValue>): Promise<SRTSockOptValue>
 
-    /**
-     *
-     * @param epid
-     * @param socket
-     * @param events
-     */
-    epollAddUsock(epid: number, socket: number, events: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+  /**
+   *
+   * @param socket
+   */
+  getSockState(socket: number, callback?: AsyncSRTCallback<SRTSockStatus>): Promise<SRTSockStatus>
 
-    /**
-     *
-     * @param epid
-     * @param msTimeOut
-     */
-    epollUWait(epid: number, msTimeOut: number, callback?: AsyncSRTCallback<SRTEpollEvent[]>): Promise<SRTEpollEvent[]>
-  }
+  /**
+   * @returns epid
+   */
+  epollCreate(callback?: AsyncSRTCallback<number>): Promise<number>
+
+  /**
+   *
+   * @param epid
+   * @param socket
+   * @param events
+   */
+  epollAddUsock(epid: number, socket: number, events: number, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
+
+  /**
+   *
+   * @param epid
+   * @param msTimeOut
+   */
+  epollUWait(epid: number, msTimeOut: number, callback?: AsyncSRTCallback<SRTEpollEvent[]>): Promise<SRTEpollEvent[]>
+
+  /**
+   *
+   * @param logLevel
+   */
+  setLogLevel(logLevel: SRTLoggingLevel, callback?: AsyncSRTCallback<SRTResult>): Promise<SRTResult>
 }
