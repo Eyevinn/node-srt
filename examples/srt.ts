@@ -1,4 +1,4 @@
-import {SRT} from '../index';
+import {SRT, SRTReadReturn} from '../index';
 
 const srt = new SRT();
 const socket = srt.createSocket();
@@ -26,6 +26,8 @@ const fhandle = srt.accept(socket);
 
 if (fhandle) {
   console.log("Client connected");
-  const chunk = srt.read(fhandle, 1316);
-  console.log("Read chunk: " + chunk.length);
+  const chunk: SRTReadReturn = srt.read(fhandle, 1316);
+  if (chunk instanceof Uint8Array) {
+    console.log("Read chunk: " + chunk.length);
+  }
 }
