@@ -1,6 +1,6 @@
-const { Readable, Writable } = require('stream');
-const LIB = require('../build/Release/node_srt.node');
-const debug = require('debug')('srt-stream');
+const { Readable } = require('stream');
+const { SRT } = require('../build/Release/node_srt.node');
+const debug = require('debug')('srt-read-stream');
 
 const CONNECTION_ACCEPT_POLLING_INTERVAL_MS = 50;
 const READ_WAIT_INTERVAL_MS = 50;
@@ -24,10 +24,30 @@ class SRTReadStream extends Readable {
   // Q: not better if port (mandatory) is before, and address is optional (default to "0.0.0.0")?
   constructor(address, port, opts) {
     super();
-    this.srt = new LIB.SRT();
+
+    /**
+     * @member {SRT}
+     */
+    this.srt = new SRT();
+
+    /**
+     * @member {number}
+     */
     this.socket = this.srt.createSocket();
+
+    /**
+     * @member {string}
+     */
     this.address = address;
+
+    /**
+     * @member {number}
+     */
     this.port = port;
+
+    /**
+     * @member {number | null}
+     */
     this.fd = null;
 
     this._eventPollInterval = null;
@@ -39,28 +59,33 @@ class SRTReadStream extends Readable {
    * @param {Function} onData Passes this stream instance as first arg to callback
    */
   listen(onData) {
+
+    if (this.fd !== null) {
+      throw new Error('listen() called but stream file-descriptor already initialized');
+    }
+
     this.srt.bind(this.socket, this.address, this.port);
     this.srt.listen(this.socket, SOCKET_LISTEN_BACKLOG);
 
     const epid = this.srt.epollCreate();
-    this.srt.epollAddUsock(epid, this.socket, LIB.SRT.EPOLL_IN | LIB.SRT.EPOLL_ERR);
+    this.srt.epollAddUsock(epid, this.socket, SRT.EPOLL_IN | SRT.EPOLL_ERR);
 
     const interval = this._eventPollInterval = setInterval(() => {
       const events = this.srt.epollUWait(epid, EPOLLUWAIT_TIMEOUT_MS);
       events.forEach(event => {
         const status = this.srt.getSockState(event.socket);
-        if (status === LIB.SRT.SRTS_BROKEN || status === LIB.SRT.SRTS_NONEXIST || status === LIB.SRT.SRTS_CLOSED) {
+        if (status === SRT.SRTS_BROKEN || status === SRT.SRTS_NONEXIST || status === SRT.SRTS_CLOSED) {
           debug("Client disconnected with socket:", event.socket);
           this.srt.close(event.socket);
           this.push(null);
           this.emit('end');
         } else if (event.socket === this.socket) {
           const fhandle = this.srt.accept(this.socket);
-          debug("New client connected with socket:", this.socket, "and fhandle:", fhandle);
-          this.srt.epollAddUsock(epid, fhandle, LIB.SRT.EPOLL_IN | LIB.SRT.EPOLL_ERR);
+          debug("Accepted client connection with file-descriptor:", fhandle);
+          this.srt.epollAddUsock(epid, fhandle, SRT.EPOLL_IN | SRT.EPOLL_ERR);
           this.emit('readable');
         } else {
-          debug("Data from client on fd:", event.socket);
+          debug("Got data from connection on fd:", event.socket);
           this.fd = event.socket;
           clearInterval(interval);
           onData(this);
@@ -70,11 +95,20 @@ class SRTReadStream extends Readable {
     }, CONNECTION_ACCEPT_POLLING_INTERVAL_MS);
   }
 
-  connect(cb) {
+  /**
+   *
+   * @param {Function} onConnect
+   */
+  connect(onConnect) {
+
+    if (this.fd !== null) {
+      throw new Error('connect() called but stream file-descriptor already initialized');
+    }
+
     this.srt.connect(this.socket, this.address, this.port);
     this.fd = this.socket;
     if (this.fd) {
-      cb(this);
+      onConnect(this);
     }
   }
 
@@ -148,48 +182,10 @@ class SRTReadStream extends Readable {
     this.srt.close(this.socket);
     this.fd = null;
     this._clearScheduledRead();
-    this.emit('close');
-  }
-}
-
-class SRTWriteStream extends Writable {
-  constructor(address, port, opts) {
-    super();
-    this.srt = new LIB.SRT();
-    this.socket = this.srt.createSocket();
-    this.address = address;
-    this.port = port;
-  }
-
-  connect(cb) {
-    this.srt.connect(this.socket, this.address, this.port);
-    this.fd = this.socket;
-    if (this.fd) {
-      cb(this);
-    }
-  }
-
-  close() {
-    this.srt.close(this.socket);
-    this.fd = null;
-  }
-
-  _write(chunk, encoding, callback) {
-    debug(`Writing chunk ${chunk.length}`);
-    if (this.fd) {
-      this.srt.write(this.fd, chunk);
-      callback();
-    } else {
-      callback(new Error("Socket was closed"));
-    }
-  }
-
-  _destroy(err, callback) {
-    this.close();
+    if (cb) cb(err);
   }
 }
 
 module.exports = {
-  SRTReadStream,
-  SRTWriteStream
+  SRTReadStream
 };
