@@ -1,15 +1,6 @@
 const { SRT, AsyncSRT } = require('../index.js');
 
-describe("Async SRT Library", () => {
-  it("exposes constants", () => {
-    expect(SRT.ERROR).toEqual(-1);
-    expect(SRT.INVALID_SOCK).toEqual(-1);
-  });
-
-  it("exposes socket options", () => {
-    expect(SRT.SRTO_UDP_SNDBUF).toEqual(8);
-    expect(SRT.SRTO_RCVLATENCY).toEqual(43);
-  });
+describe("Async SRT API with callbacks", () => {
 
   it("can create an SRT socket", done => {
     const asyncSrt = new AsyncSRT();
