@@ -1,11 +1,15 @@
-const {
-  Worker, isMainThread, parentPort, workerData
-} = require('worker_threads');
-
+const { Worker } = require('worker_threads');
 const path = require('path');
 const {performance} = require("perf_hooks");
 
+const debug = require('debug')('srt-async');
+
+const { traceCallToString, extractTransferListFromParams } = require('./async-helpers');
+const { SRT } = require('../build/Release/node_srt.node');
+
 const DEFAULT_PROMISE_TIMEOUT_MS = 3000;
+
+const DEBUG = false;
 
 /*
 const WORK_ID_GEN_MOD = 0xFFF;
@@ -20,6 +24,9 @@ class AsyncSRT {
   static TimeoutMs = DEFAULT_PROMISE_TIMEOUT_MS;
 
   constructor() {
+
+    DEBUG && debug('Creating task-runner worker instance');
+
     this._worker = new Worker(path.resolve(__dirname, './async-worker.js'));
     this._worker.on('message', this._onWorkerMessage.bind(this));
     /*
@@ -30,14 +37,40 @@ class AsyncSRT {
   }
 
   /**
+   * @returns {Promise<number>} Resolves to exit code of Worker
+   */
+  dispose() {
+    const worker = this._worker;
+    this._worker = null;
+    if (this._workCbQueue.length !== 0) {
+      console.warn(`AsyncSRT: flushing callback-queue with ${this._workCbQueue.length} remaining jobs awaiting.`);
+      this._workCbQueue.length = 0;
+    }
+    return worker.terminate();
+  }
+
+  /**
    * @private
-   * @param {*} data
+   * @param {object} data
    */
   _onWorkerMessage(data) {
-    const resolveTime = performance.now();
-    const {timestamp, result, workId} = data;
+    // not sure if there can still be message event
+    // after calling terminate
+    // but let's guard from that state anyway.
+    if (this._worker === null) return;
 
+    const resolveTime = performance.now();
     const callback = this._workCbQueue.shift();
+
+    if (data.err) {
+      console.error('AsyncSRT: Error from task-runner:', data.err.message,
+        '\n  Binding call:', traceCallToString(data.call.method, data.call.args),
+        //'\n  Stacktrace:', data.err.stack
+        );
+      return;
+    }
+
+    const {timestamp, result, workId} = data;
     callback(result);
   }
 
@@ -63,8 +96,12 @@ class AsyncSRT {
     this._workCbMap.set(workId, callback);
     */
 
+    DEBUG && debug('Sending call:', traceCallToString(method, args));
+
+    const transferList = extractTransferListFromParams(args);
+
     this._workCbQueue.push(callback);
-    this._worker.postMessage({method, args, /*workId,*/ timestamp});
+    this._worker.postMessage({method, args, /*workId,*/ timestamp}, transferList);
   }
 
   /**
@@ -72,8 +109,15 @@ class AsyncSRT {
    * @param {string} method
    * @param {Array<any>} args optional
    * @param {Function} callback optional
+   * @param {boolean} useTimeout
+   * @param {number} timeoutMs
    */
-  _createAsyncWorkPromise(method, args = [], callback = null, useTimeout = true, timeoutMs = AsyncSRT.TimeoutMs) {
+  _createAsyncWorkPromise(method,
+    args = [],
+    callback = null,
+    useTimeout = false,
+    timeoutMs = AsyncSRT.TimeoutMs) {
+
     return new Promise((resolve, reject) => {
       let timeout;
       let rejected = false;
@@ -91,7 +135,7 @@ class AsyncSRT {
       };
       if (useTimeout) {
         timeout = setTimeout(() => {
-          reject(new Error('Timeout exceeded while awaiting result from worker running native-addon module functions'));
+          reject(new Error(`Timeout exceeded (${timeoutMs} ms) while awaiting method result: ${traceCallToString(method, args)}`));
           rejected = true;
         }, timeoutMs);
       }
@@ -101,18 +145,17 @@ class AsyncSRT {
 
   /**
    *
-   * @param {boolean} sender
-   * @returns SRTSOCKET identifier (integer value) or -1 (SRT_ERROR)
+   * @param {boolean} sender default: false. only needed to specify if local/remote SRT ver < 1.3 or no other HSv5 support
    */
-  createSocket(sender, callback) {
+  createSocket(sender = false, callback) {
     return this._createAsyncWorkPromise("createSocket", [sender], callback);
   }
 
   /**
    *
-   * @param socket
-   * @param address
-   * @param port
+   * @param {number} socket
+   * @param {string} address
+   * @param {number} port
    */
   bind(socket, address, port, callback) {
     return this._createAsyncWorkPromise("bind", [socket, address, port], callback);
@@ -120,8 +163,8 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @param backlog
+   * @param {number} socket
+   * @param {number} backlog
    */
   listen(socket, backlog, callback) {
     return this._createAsyncWorkPromise("listen", [socket, backlog], callback);
@@ -129,9 +172,9 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @param host
-   * @param port
+   * @param {number} socket
+   * @param {string} host
+   * @param {number} port
    */
   connect(socket, host, port, callback) {
     return this._createAsyncWorkPromise("connect", [socket, host, port], callback);
@@ -139,8 +182,7 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @returns File descriptor of incoming connection pipe
+   * @param {number} socket
    */
   accept(socket, callback, useTimeout = false, timeoutMs = AsyncSRT.TimeoutMs) {
     return this._createAsyncWorkPromise("accept", [socket], callback, useTimeout, timeoutMs);
@@ -148,7 +190,7 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
+   * @param {number} socket
    */
   close(socket, callback) {
     return this._createAsyncWorkPromise("close", [socket], callback);
@@ -156,9 +198,9 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @param chunkSize
-   * @returns {Promise<Buffer>}
+   * @param {number} socket
+   * @param {number} chunkSize
+   * @returns {Promise<Buffer | SRTResult.SRT_ERROR | null>}
    */
   read(socket, chunkSize, callback) {
     return this._createAsyncWorkPromise("read", [socket, chunkSize], callback);
@@ -166,24 +208,45 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @param {Buffer} chunk
+   * Pass a packet buffer to write to the socket.
+   *
+   * The size of the buffer must not exceed the SRT payload MTU
+   * (usually 1316 bytes).
+   *
+   * Otherwise the call will resolve to SRT_ERROR.
+   *
+   * A system-specific socket-message error message may show in logs as enabled
+   * where the error is thrown (on the binding call to the native SRT API),
+   * and in the async API internals as it gets propagated back from the task-runner).
+   *
+   * Note that any underlying data buffer passed in
+   * will be *neutered* by our worker thread and
+   * therefore become unusable (i.e go to detached state, `byteLengh === 0`)
+   * for the calling thread of this method.
+   * When consuming from a larger piece of data,
+   * chunks written will need to be slice copies of the source buffer.
+   *
+   * For a usage example, check the performance & smoke testbench.
+   *
+   * @param {number} socket Socket identifier to write to
+   * @param {Buffer | Uint8Array} chunk The underlying `buffer` (ArrayBufferLike) will get "neutered" by creating the async task. Pass in or use a copy respectively if concurrent data usage is intended.
    */
   write(socket, chunk, callback) {
-    // TODO: see if we can do this using SharedArrayBuffer for example,
-    //       or just leveraging Transferable objects capabilities ... ?
-    // FIXME: Performance ... ?
-    const buf = Buffer.allocUnsafe(chunk.length);
-    chunk.copy(buf);
-    chunk = buf;
-    return this._createAsyncWorkPromise("write", [socket, chunk], callback);
+    const byteLength = chunk.byteLength;
+    DEBUG && debug(`write ${byteLength} to socket:`, socket)
+    return this._createAsyncWorkPromise("write", [socket, chunk], callback)
+      .then((result) => {
+        if (result !== SRT.ERROR) {
+          return byteLength;
+        }
+      });
   }
 
   /**
    *
-   * @param socket
-   * @param option
-   * @param value
+   * @param {number} socket
+   * @param {number} option
+   * @param {number} value
    */
   setSockOpt(socket, option, value, callback) {
     return this._createAsyncWorkPromise("setSockOpt", [socket, option, value], callback);
@@ -191,8 +254,8 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
-   * @param option
+   * @param {number} socket
+   * @param {number} option
    */
   getSockOpt(socket, option, callback) {
     return this._createAsyncWorkPromise("getSockOpt", [socket, option], callback);
@@ -200,14 +263,14 @@ class AsyncSRT {
 
   /**
    *
-   * @param socket
+   * @param {number} socket
    */
   getSockState(socket, callback) {
     return this._createAsyncWorkPromise("getSockState", [socket], callback);
   }
 
   /**
-   * @returns epid
+   * @returns {number} epid
    */
   epollCreate(callback) {
     return this._createAsyncWorkPromise("epollCreate", [], callback);
@@ -215,9 +278,9 @@ class AsyncSRT {
 
   /**
    *
-   * @param epid
-   * @param socket
-   * @param events
+   * @param {number} epid
+   * @param {number} socket
+   * @param {number} events
    */
   epollAddUsock(epid, socket, events, callback) {
     return this._createAsyncWorkPromise("epollAddUsock", [epid, socket, events], callback);
@@ -225,11 +288,20 @@ class AsyncSRT {
 
   /**
    *
-   * @param epid
-   * @param msTimeOut
+   * @param {number} epid
+   * @param {number} msTimeOut
    */
   epollUWait(epid, msTimeOut, callback) {
     return this._createAsyncWorkPromise("epollUWait", [epid, msTimeOut], callback);
+  }
+
+  /**
+   *
+   * @param {number | SRTLoggingLevel} logLevel
+   * @returns {Promise<SRTResult>}
+   */
+  setLogLevel(logLevel, callback) {
+    return this._createAsyncWorkPromise("setLogLevel", [logLevel], callback);
   }
 }
 
