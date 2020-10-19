@@ -108,6 +108,21 @@ or with promises:
     });  
 ```
 
+### High-performance read/write use-cases & server/multi-connection implementation
+
+In order to perform on certain use-cases where larger chunks of data split into packets
+would need to be sent/received in bursts, we provide "modes" and a high-level class called `AsyncReaderWriter`, which can be initialized an existing `AsyncSRT` instance, i.e a worker thread, and a given SRT socket identifier. It therefore allows to plug-into any concept of a
+connection on either side. A client connection instance can therefore just be a socket created
+with a successful connection state via the SRT API, and then using the reader-writer for
+any sort of transmission upon it.
+
+Also, we provide a class to allow building a server that can accept multiple incoming connections(`SRTServer` and its friend `SRTConnection`). The latter server-side connection object has the method `SRTConnection#getReaderWriter()` to allow using the reader-writer
+in order to communicate with the respective client.
+
+The best example to see all this in action at once is taking a look at the respective integration test(s).
+
+These components also all have JSdoc annotations that should help with their usage.
+
 ### Readable Stream
 A custom readable stream API is also available, example (in listener mode):
 
