@@ -13,6 +13,21 @@ npm install --save @eyevinn/srt
 
 Installing from NPM downloads and builds SRT SDK and NodeJS addon for your operating system × architecture.
 
+## Prerequisities
+
+Please refer to build instructions for your OS of the [SRT project](https://github.com/Haivision/srt#requirements).
+
+This is providing a NodeJS binding layer that at its build-time assumes that plain libSRT already *can* be built on your system.
+
+We will merely pull in an SRT codebase from a GIT repo here (that may be local or remote), and attempt to compile it (using the specific toolchain and commands invoked for each OS). See `scripts/build-srt-sdk.js`. Then linking the result of it into the compiled NodeJS add-on we provide here via the Gyp tool.
+
+Everything we need on the NodeJS side of things (N-API, Gyp) gets installed via NPM,
+as you install this package.
+
+However, it is not provided with this any prerequisits of building libSRT itself (we only try to invoke the toolchain correctly, whichever it is, on your OS).
+
+As you install all of the prerequisites, or even build the library already in your environment, this package should work also likewise.
+
 ## Example
 
 ```
