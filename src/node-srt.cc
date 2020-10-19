@@ -8,6 +8,10 @@
 #include "node-srt.h"
 #include "srt-enums.h"
 
+using namespace std;
+
+#define EPOLL_EVENTS_NUM_MAX 1024
+
 Napi::FunctionReference NodeSRT::constructor;
 
 Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
@@ -28,13 +32,15 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("epollCreate", &NodeSRT::EpollCreate),
     InstanceMethod("epollAddUsock", &NodeSRT::EpollAddUsock),
     InstanceMethod("epollUWait", &NodeSRT::EpollUWait),
+    InstanceMethod("setLogLevel", &NodeSRT::SetLogLevel),
 
+    StaticValue("OK", Napi::Number::New(env, 0)),
     StaticValue("ERROR", Napi::Number::New(env, SRT_ERROR)),
     StaticValue("INVALID_SOCK", Napi::Number::New(env, SRT_INVALID_SOCK)),
 
     // Socket options
     SOCKET_OPTIONS,
-    
+
     // Socket status
     SOCKET_STATUS,
 
@@ -56,10 +62,12 @@ NodeSRT::NodeSRT(const Napi::CallbackInfo& info) : Napi::ObjectWrap<NodeSRT>(inf
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
+  // Q: should we avoid to call this repeatedly (with potentially several ObjectWrap instances created) ?
   srt_startup();
 }
 
 NodeSRT::~NodeSRT() {
+
   srt_cleanup();
 }
 
@@ -69,9 +77,10 @@ Napi::Value NodeSRT::CreateSocket(const Napi::CallbackInfo& info) {
 
   Napi::Boolean isSender = Napi::Boolean::New(env, false);
   if (info.Length() > 0) {
+    // FIXME: throws exception when `arg[0] === undefined`
     isSender = info[0].As<Napi::Boolean>();
   }
-  
+
   SRTSOCKET socket = srt_socket(AF_INET, SOCK_DGRAM, 0);
   if (socket == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
@@ -88,7 +97,7 @@ Napi::Value NodeSRT::Bind(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
-  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Number socketId = info[0].As<Napi::Number>();
   Napi::String address = info[1].As<Napi::String>();
   Napi::Number port = info[2].As<Napi::Number>();
 
@@ -102,9 +111,9 @@ Napi::Value NodeSRT::Bind(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, result);
   }
 
-  result = srt_bind(socketValue, (struct sockaddr *)&addr, sizeof(addr));
+  result = srt_bind(socketId, (struct sockaddr *)&addr, sizeof(addr));
   if (result == SRT_ERROR) {
-    srt_close(socketValue);
+    srt_close(socketId);
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
@@ -192,16 +201,20 @@ Napi::Value NodeSRT::Read(const Napi::CallbackInfo& info) {
   Napi::Number socketValue = info[0].As<Napi::Number>();
   Napi::Number chunkSize = info[1].As<Napi::Number>();
 
+  // Q: why not converting to `int` directly here?
   size_t bufferSize = uint32_t(chunkSize);
   uint8_t *buffer = (uint8_t *)malloc(bufferSize);
   memset(buffer, 0, bufferSize);
 
   int nb = srt_recvmsg(socketValue, (char *)buffer, (int)bufferSize);
   if (nb == SRT_ERROR) {
-    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    string err(string("srt_recvmsg: ")
+      + string(srt_getlasterror_str()));
+    Napi::Error::New(env, err).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
 
+  // Q: why not using char as data/template type?
   Napi::Value nbuff = Napi::Buffer<uint8_t>::Copy(env, buffer, nb);
   free(buffer);
 
@@ -213,11 +226,15 @@ Napi::Value NodeSRT::Write(const Napi::CallbackInfo& info) {
   Napi::HandleScope scope(env);
 
   Napi::Number socketValue = info[0].As<Napi::Number>();
+
+  // Q: why not using char as data/template type?
   Napi::Buffer<uint8_t> chunk = info[1].As<Napi::Buffer<uint8_t>>();
 
   int result = srt_sendmsg2(socketValue, (const char *)chunk.Data(), chunk.Length(), nullptr);
   if (result == SRT_ERROR) {
-    Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    string err(string("srt_sendmsg2: ")
+      + string(srt_getlasterror_str()));
+    Napi::Error::New(env, err).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
   return Napi::Number::New(env, result);
@@ -337,7 +354,7 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       Napi::Error::New(env, "SOCKOPT not implemented yet").ThrowAsJavaScriptException();
       break;
   }
-  
+
   if (result == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return empty;
@@ -385,11 +402,11 @@ Napi::Value NodeSRT::EpollAddUsock(const Napi::CallbackInfo& info) {
 Napi::Value NodeSRT::EpollUWait(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
-  
+
   Napi::Number epidValue = info[0].As<Napi::Number>();
   Napi::Number msTimeOut = info[1].As<Napi::Number>();
 
-  const int fdsSetSize = 100;
+  const int fdsSetSize = EPOLL_EVENTS_NUM_MAX;
   SRT_EPOLL_EVENT fdsSet[fdsSetSize];
   int n = srt_epoll_uwait(epidValue, fdsSet, fdsSetSize, msTimeOut);
   Napi::Array events = Napi::Array::New(env, n);
@@ -401,4 +418,20 @@ Napi::Value NodeSRT::EpollUWait(const Napi::CallbackInfo& info) {
   }
 
   return events;
+}
+
+Napi::Value NodeSRT::SetLogLevel(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  int logLevel = info[0].As<Napi::Number>().Int32Value();
+
+  int result;
+  if (logLevel >= 0 && logLevel <= 7) {
+    srt_setloglevel(logLevel);
+    result = 0;
+  } else {
+    result = SRT_ERROR;
+  }
+  return Napi::Number::New(env, result);
 }
