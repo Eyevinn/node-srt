@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/triple-slash-reference */
-/// <reference path="./types/srt-api.d.ts" />
-/// <reference path="./types/srt-stream.d.ts" />
-/// <reference path="./types/srt-server.d.ts" />
-/// <reference path="./types/srt-api-async.d.ts" />
+import { SRTLoggingLevel } from "./src/srt-api-enums";
 
-export * from "srt";
+export * from "./types/srt-api";
+export * from "./types/srt-api-async";
+export * from "./types/srt-server";
+export * from "./types/srt-stream";
+
+export function setSRTLoggingLevel(level: SRTLoggingLevel);

@@ -13,6 +13,21 @@ npm install --save @eyevinn/srt
 
 Installing from NPM downloads and builds SRT SDK and NodeJS addon for your operating system × architecture.
 
+## Prerequisities
+
+Please refer to build instructions for your OS of the [SRT project](https://github.com/Haivision/srt#requirements).
+
+This is providing a NodeJS binding layer that at its build-time assumes that plain libSRT already *can* be built on your system.
+
+We will merely pull in an SRT codebase from a GIT repo here (that may be local or remote), and attempt to compile it (using the specific toolchain and commands invoked for each OS). See `scripts/build-srt-sdk.js`. Then linking the result of it into the compiled NodeJS add-on we provide here via the Gyp tool.
+
+Everything we need on the NodeJS side of things (N-API, Gyp) gets installed via NPM,
+as you install this package.
+
+However, it is not provided with this any prerequisits of building libSRT itself (we only try to invoke the toolchain correctly, whichever it is, on your OS).
+
+As you install all of the prerequisites, or even build the library already in your environment, this package should work also likewise.
+
 ## Example
 
 ```
@@ -92,6 +107,21 @@ or with promises:
       }
     });  
 ```
+
+### High-performance read/write use-cases & server/multi-connection implementation
+
+In order to perform on certain use-cases where larger chunks of data split into packets
+would need to be sent/received in bursts, we provide "modes" and a high-level class called `AsyncReaderWriter`, which can be initialized an existing `AsyncSRT` instance, i.e a worker thread, and a given SRT socket identifier. It therefore allows to plug-into any concept of a
+connection on either side. A client connection instance can therefore just be a socket created
+with a successful connection state via the SRT API, and then using the reader-writer for
+any sort of transmission upon it.
+
+Also, we provide a class to allow building a server that can accept multiple incoming connections(`SRTServer` and its friend `SRTConnection`). The latter server-side connection object has the method `SRTConnection#getReaderWriter()` to allow using the reader-writer
+in order to communicate with the respective client.
+
+The best example to see all this in action at once is taking a look at the respective integration test(s).
+
+These components also all have JSdoc annotations that should help with their usage.
 
 ### Readable Stream
 A custom readable stream API is also available, example (in listener mode):

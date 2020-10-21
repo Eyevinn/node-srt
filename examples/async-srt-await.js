@@ -1,3 +1,5 @@
+"use strict";
+
 const { AsyncSRT } = require('../src/async.js');
 
 const asyncSrt = new AsyncSRT();

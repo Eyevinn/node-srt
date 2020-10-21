@@ -4,13 +4,14 @@
   "description": "Nodejs bindings for Secure Reliable Transport SDK",
   "main": "index.js",
   "scripts": {
-    "preinstall": "npm install git-clone && node scripts/build-srt-sdk.js",
-    "install": "node-gyp rebuild -j 8",
-    "rebuild": "node-gyp rebuild",
+    "install": "npm run build-srt && npm run rebuild",
+    "build-srt": "node scripts/build-srt-sdk.js",
+    "rebuild": "node-gyp rebuild -j $(echo \"console.log(require('os').cpus().length)\" | node)",
     "clean": "node-gyp clean",
-    "test": "$(npm bin)/jasmine",
+    "test": "jasmine",
+    "test-jest": "jest --runInBand --detectOpenHandles",
     "lint": "eslint . --ext .js --ext .ts",
-    "check-tsc": "./node_modules/.bin/tsc examples/srt.ts --outDir ./tsc-lib",
+    "check-tsc": "tsc examples/srt.ts --outDir ./tsc-lib",
     "postversion": "git push && git push --tags"
   },
   "repository": {
@@ -26,20 +27,24 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^26.0.10",
     "@types/node": "^14.0.23",
     "@typescript-eslint/eslint-plugin": "^3.6.1",
     "@typescript-eslint/parser": "^3.6.1",
     "eslint": "^7.4.0",
     "eslint-plugin-jasmine": "^4.1.1",
     "jasmine": "^3.5.0",
-    "node-gyp": "^7.0.0",
+    "jest": "^26.4.1",
+    "ts-jest": "^26.2.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6"
   },
   "dependencies": {
     "debug": "^4.1.1",
+    "del": "^5.1.0",
     "git-clone": "^0.1.0",
-    "node-addon-api": "^3.0.0"
+    "node-addon-api": "^3.0.0",
+    "node-gyp": "^7.0.0"
   },
   "bugs": {
     "url": "https://github.com/Eyevinn/node-srt/issues"
