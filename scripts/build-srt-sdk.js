@@ -44,10 +44,12 @@ if (!fs.existsSync(srtSourcePath)) {
 }
 
 function build() {
-  console.log('Building SRT SDK and prerequisites')
-  if (process.platform === "win32") {
+  console.log('Building SRT SDK and prerequisites for current platform:', process.platform);
+  switch (process.platform) {
+  case "win32":
     buildWin32();
-  } else {
+    break;
+  default:
     buildNx();
   }
 }
