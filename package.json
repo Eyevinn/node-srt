@@ -6,7 +6,8 @@
   "scripts": {
     "install": "npm run build-srt && npm run rebuild",
     "build-srt": "node scripts/build-srt-sdk.js",
-    "rebuild": "node-gyp rebuild -j $(echo \"console.log(require('os').cpus().length)\" | node)",
+    "rebuild": "node-gyp rebuild",
+    "rebuild-jn": "node-gyp rebuild -j $(echo \"console.log(require('os').cpus().length)\" | node)",
     "clean": "node-gyp clean",
     "test": "jasmine",
     "test-jest": "jest --runInBand --detectOpenHandles",
