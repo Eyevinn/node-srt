@@ -25,4 +25,6 @@ class NodeSRT : public Napi::ObjectWrap<NodeSRT> {
     Napi::Value EpollUWait(const Napi::CallbackInfo& info);
 
     Napi::Value SetLogLevel(const Napi::CallbackInfo& info);
+
+    Napi::Value Stats(const Napi::CallbackInfo& info);
 };

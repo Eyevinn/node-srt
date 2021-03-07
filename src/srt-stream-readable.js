@@ -116,6 +116,14 @@ class SRTReadStream extends Readable {
     this.destroy();
   }
 
+  stats(clear) {
+    if (this.fd === null) {
+      throw new Error('stats() called but stream was not initialized');
+    }
+
+    return this.srt.stats(this.fd, clear);
+  }
+
   _scheduleNextRead(requestedBytes, timeoutMs) {
     this._readTimer = setTimeout(this._readSocketAndPush.bind(this, requestedBytes), timeoutMs);
   }

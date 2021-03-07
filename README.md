@@ -61,6 +61,7 @@ class SRT {
   epollCreate(): epid:Number
   epollAddUsock(epid:Number, socket:Number, events:Number): result:Number
   epollUWait(epid:Number, msTimeOut:Number): events:Array
+  stats(socket:Number, clear:Boolean): stats:SRTStats
 }
 ```
 
