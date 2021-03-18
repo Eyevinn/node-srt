@@ -303,6 +303,16 @@ class AsyncSRT {
   setLogLevel(logLevel, callback) {
     return this._createAsyncWorkPromise("setLogLevel", [logLevel], callback);
   }
+
+  /**
+   *
+   * @param {number} socket
+   * @param {boolean} clear
+   * @returns {Promise<SRTStats>}
+   */
+   stats(socket, clear, callback) {
+    return this._createAsyncWorkPromise("stats", [socket, clear], callback);
+  }
 }
 
 module.exports = {AsyncSRT};

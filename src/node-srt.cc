@@ -33,6 +33,7 @@ Napi::Object NodeSRT::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("epollAddUsock", &NodeSRT::EpollAddUsock),
     InstanceMethod("epollUWait", &NodeSRT::EpollUWait),
     InstanceMethod("setLogLevel", &NodeSRT::SetLogLevel),
+    InstanceMethod("stats", &NodeSRT::Stats),
 
     StaticValue("OK", Napi::Number::New(env, 0)),
     StaticValue("ERROR", Napi::Number::New(env, SRT_ERROR)),
@@ -434,4 +435,113 @@ Napi::Value NodeSRT::SetLogLevel(const Napi::CallbackInfo& info) {
     result = SRT_ERROR;
   }
   return Napi::Number::New(env, result);
+}
+
+Napi::Value NodeSRT::Stats(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  SRT_TRACEBSTATS stats;
+  Napi::Number socketValue = info[0].As<Napi::Number>();
+  Napi::Boolean clear = info[1].As<Napi::Boolean>();
+
+  if (srt_bstats(socketValue, &stats, clear) == SRT_ERROR) {
+		Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+    return Napi::Number::New(env, SRT_ERROR);
+	}
+
+  Napi::Object obj = Napi::Object::New(env);
+
+  // global measurements
+  obj.Set("msTimeStamp", stats.msTimeStamp);
+  obj.Set("pktSentTotal", stats.pktSentTotal);
+  obj.Set("pktRecvTotal", stats.pktRecvTotal);
+  obj.Set("pktSndLossTotal", stats.pktSndLossTotal);
+  obj.Set("pktRcvLossTotal", stats.pktRcvLossTotal);
+  obj.Set("pktRetransTotal", stats.pktRetransTotal);
+  obj.Set("pktSentACKTotal", stats.pktSentACKTotal);
+  obj.Set("pktRecvACKTotal", stats.pktRecvACKTotal);
+  obj.Set("pktSentNAKTotal", stats.pktSentNAKTotal);
+  obj.Set("pktRecvNAKTotal", stats.usSndDurationTotal);
+  obj.Set("pktSndDropTotal", stats.pktSndDropTotal);
+  obj.Set("pktRcvDropTotal", stats.pktRcvDropTotal);
+  obj.Set("pktRcvUndecryptTotal", stats.pktRcvUndecryptTotal);
+  obj.Set("byteSentTotal", stats.byteSentTotal);
+  obj.Set("byteRecvTotal", stats.byteRecvTotal);
+  obj.Set("byteRcvLossTotal", stats.byteRcvLossTotal);
+  obj.Set("byteRetransTotal", stats.byteRetransTotal);
+  obj.Set("byteSndDropTotal", stats.byteSndDropTotal);
+  obj.Set("byteRcvDropTotal", stats.byteRcvDropTotal);
+  obj.Set("byteRcvUndecryptTotal", stats.byteRcvUndecryptTotal);
+
+  // local measurements
+  obj.Set("pktSent", stats.pktSent);
+  obj.Set("pktRecv", stats.pktRecv);
+  obj.Set("pktSndLoss", stats.pktSndLoss);
+  obj.Set("pktRcvLoss", stats.pktRcvLoss);
+  obj.Set("pktRetrans", stats.pktRetrans);
+  obj.Set("pktRcvRetrans", stats.pktRcvRetrans);
+  obj.Set("pktSentACK", stats.pktSentACK);
+  obj.Set("pktRecvACK", stats.pktRecvACK);
+  obj.Set("pktSentNAK", stats.pktSentNAK);
+  obj.Set("pktRecvNAK", stats.pktRecvNAK);
+  obj.Set("mbpsSendRate", stats.mbpsSendRate);
+  obj.Set("mbpsRecvRate", stats.mbpsRecvRate);
+  obj.Set("usSndDuration", stats.usSndDuration);
+  obj.Set("pktReorderDistance", stats.pktReorderDistance);
+  obj.Set("pktRcvAvgBelatedTime", stats.pktRcvAvgBelatedTime);
+  obj.Set("pktRcvBelated", stats.pktRcvBelated);
+  obj.Set("pktSndDrop", stats.pktSndDrop);
+  obj.Set("pktRcvDrop", stats.pktRcvDrop);
+  obj.Set("pktRcvUndecrypt", stats.pktRcvUndecrypt);
+  obj.Set("byteSent", stats.byteSent);
+  obj.Set("byteRecv", stats.byteRecv);
+  obj.Set("byteRcvLoss", stats.byteRcvLoss);
+  obj.Set("byteRetrans", stats.byteRetrans);
+  obj.Set("byteSndDrop", stats.byteSndDrop);
+  obj.Set("byteRcvDrop", stats.byteRcvDrop);
+  obj.Set("byteRcvUndecrypt", stats.byteRcvUndecrypt);
+
+  // instant measurements
+  obj.Set("usPktSndPeriod", stats.usPktSndPeriod);
+  obj.Set("pktFlowWindow", stats.pktFlowWindow);
+  obj.Set("pktCongestionWindow", stats.pktCongestionWindow);
+  obj.Set("pktFlightSize", stats.pktFlightSize);
+  obj.Set("msRTT", stats.msRTT);
+  obj.Set("mbpsBandwidth", stats.mbpsBandwidth);
+  obj.Set("byteAvailSndBuf", stats.byteAvailSndBuf);
+  obj.Set("byteAvailRcvBuf", stats.byteAvailRcvBuf);
+  obj.Set("mbpsMaxBW", stats.mbpsMaxBW);
+  obj.Set("byteMSS", stats.byteMSS);
+  obj.Set("pktSndBuf", stats.pktSndBuf);
+  obj.Set("byteSndBuf", stats.byteSndBuf);
+  obj.Set("msSndBuf", stats.msSndBuf);
+  obj.Set("msSndTsbPdDelay", stats.msSndTsbPdDelay);
+  obj.Set("pktRcvBuf", stats.pktRcvBuf);
+  obj.Set("byteRcvBuf", stats.byteRcvBuf);
+  obj.Set("msRcvBuf", stats.msRcvBuf);
+  obj.Set("msRcvTsbPdDelay", stats.msRcvTsbPdDelay);
+  obj.Set("pktSndFilterExtraTotal", stats.pktSndFilterExtraTotal);
+  obj.Set("pktRcvFilterExtraTotal", stats.pktRcvFilterExtraTotal);
+  obj.Set("pktRcvFilterSupplyTotal", stats.pktRcvFilterSupplyTotal);
+  obj.Set("pktRcvFilterLossTotal", stats.pktRcvFilterLossTotal);
+  obj.Set("pktSndFilterExtra", stats.pktSndFilterExtra);
+  obj.Set("pktRcvFilterExtra", stats.pktRcvFilterExtra);
+  obj.Set("pktRcvFilterSupply", stats.pktRcvFilterSupply);
+  obj.Set("pktRcvFilterLoss", stats.pktRcvFilterLoss);
+  obj.Set("pktReorderTolerance", stats.pktReorderTolerance);
+  
+  // Total
+  obj.Set("pktSentUniqueTotal", stats.pktSentUniqueTotal);
+  obj.Set("pktRecvUniqueTotal", stats.pktRecvUniqueTotal);
+  obj.Set("byteSentUniqueTotal", stats.byteSentUniqueTotal);
+  obj.Set("byteRecvUniqueTotal", stats.byteRecvUniqueTotal);
+
+  // Local
+  obj.Set("pktSentUnique", stats.pktSentUnique);
+  obj.Set("pktRecvUnique", stats.pktRecvUnique);
+  obj.Set("byteSentUnique", stats.byteSentUnique);
+  obj.Set("byteRecvUnique", stats.byteRecvUnique);
+  
+  return obj;
 }

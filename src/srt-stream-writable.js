@@ -24,6 +24,14 @@ class SRTWriteStream extends Writable {
     this.fd = null;
   }
 
+  stats(clear) {
+    if (this.fd === null) {
+      throw new Error('stats() called but stream was not initialized');
+    }
+
+    return this.srt.Stats(this.fd, clear);
+  }
+
   _write(chunk, encoding, callback) {
     debug(`Writing chunk ${chunk.length}`);
     if (this.fd) {
