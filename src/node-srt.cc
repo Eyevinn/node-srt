@@ -168,7 +168,7 @@ Napi::Value NodeSRT::Accept(const Napi::CallbackInfo& info) {
   Napi::Number socketValue = info[0].As<Napi::Number>();
 
   sockaddr_in their_addr;
-  int addr_size;
+  int addr_size = sizeof (sockaddr_in);
 
   int their_fd = srt_accept(socketValue, (struct sockaddr *)&their_addr, &addr_size);
   if (their_fd == SRT_INVALID_SOCK) {
