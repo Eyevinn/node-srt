@@ -82,7 +82,7 @@ Napi::Value NodeSRT::CreateSocket(const Napi::CallbackInfo& info) {
     isSender = info[0].As<Napi::Boolean>();
   }
 
-  SRTSOCKET socket = srt_socket(AF_INET, SOCK_DGRAM, 0);
+  SRTSOCKET socket = srt_create_socket();
   if (socket == SRT_ERROR) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
@@ -168,7 +168,7 @@ Napi::Value NodeSRT::Accept(const Napi::CallbackInfo& info) {
   Napi::Number socketValue = info[0].As<Napi::Number>();
 
   sockaddr_in their_addr;
-  int addr_size;
+  int addr_size = sizeof (sockaddr_in);
 
   int their_fd = srt_accept(socketValue, (struct sockaddr *)&their_addr, &addr_size);
   if (their_fd == SRT_INVALID_SOCK) {
@@ -530,7 +530,7 @@ Napi::Value NodeSRT::Stats(const Napi::CallbackInfo& info) {
   obj.Set("pktRcvFilterSupply", stats.pktRcvFilterSupply);
   obj.Set("pktRcvFilterLoss", stats.pktRcvFilterLoss);
   obj.Set("pktReorderTolerance", stats.pktReorderTolerance);
-  
+
   // Total
   obj.Set("pktSentUniqueTotal", stats.pktSentUniqueTotal);
   obj.Set("pktRecvUniqueTotal", stats.pktRecvUniqueTotal);
@@ -542,6 +542,6 @@ Napi::Value NodeSRT::Stats(const Napi::CallbackInfo& info) {
   obj.Set("pktRecvUnique", stats.pktRecvUnique);
   obj.Set("byteSentUnique", stats.byteSentUnique);
   obj.Set("byteRecvUnique", stats.byteRecvUnique);
-  
+
   return obj;
 }
