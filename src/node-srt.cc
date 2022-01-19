@@ -343,7 +343,8 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
       break;
     }
     case SRTO_PACKETFILTER:
-    case SRTO_PASSPHRASE:
+    case SRTO_PASSPHRASE
+    case SRTO_STREAMID:
     {
       char optValue[512];
       int optSize = sizeof(optValue);
