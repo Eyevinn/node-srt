@@ -39,6 +39,17 @@ describe("SRT library", () => {
     expect(value).toEqual(1052);
   });
 
+  it("can set SRT sockopt SRTO_STREAMID", () => {
+    const srt = new SRT();
+    const socket = srt.createSocket();
+    const result = srt.setSockOpt(socket, SRT.SRTO_STREAMID, "STREAMID");
+
+    expect(result).not.toEqual(SRT.ERROR);
+    const value = srt.getSockOpt(socket, SRT.SRTO_STREAMID);
+
+    expect(value).toEqual("STREAMID");
+  });
+
   it("can set SRT socket in non-blocking mode", () => {
     const srt = new SRT();
     const socket = srt.createSocket();
@@ -59,7 +70,7 @@ describe("SRT library", () => {
     const epid = srt.epollCreate();
     srt.epollAddUsock(epid, socket, SRT.EPOLL_IN | SRT.EPOLL_ERR);
     const events = srt.epollUWait(epid, 500);
-    
+
     expect(events.length).toEqual(0);
   });
 

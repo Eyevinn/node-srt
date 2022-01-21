@@ -53,7 +53,7 @@ describe("Async SRT API with callbacks", () => {
       });
     });
   });
-  
+
   it("can set SRT socket in non-blocking mode", done => {
     const asyncSrt = new AsyncSRT();
     asyncSrt.createSocket(false, (socket) => {
