@@ -41,6 +41,19 @@ describe("Async SRT API with callbacks", () => {
     });
   });
 
+  it("can set SRT sockopt SRTO_STREAMID", done => {
+    const asyncSrt = new AsyncSRT();
+    asyncSrt.createSocket(false, (socket) => {
+      asyncSrt.setSockOpt(socket, SRT.SRTO_STREAMID, "STREAMID", (result) => {
+        expect(result).not.toEqual(SRT.ERROR);
+        asyncSrt.getSockOpt(socket, SRT.SRTO_STREAMID, (value) => {
+          expect(value).toEqual("STREAMID");
+          done();
+        });
+      });
+    });
+  });
+
   it("can set SRT socket in non-blocking mode", done => {
     const asyncSrt = new AsyncSRT();
     asyncSrt.createSocket(false, (socket) => {
