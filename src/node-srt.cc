@@ -253,7 +253,7 @@ Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
     Napi::Number value = info[2].As<Napi::Number>();
     int32_t optName = option;
     int optValue = value;
-    result = srt_setsockflag(socketValue, (SRT_SOCKOPT)optName, &optValue, sizeof(int));
+    result = srt_setsockflag(socketValue, (SRT_SOCKOPT) optName, &optValue, sizeof(int));
     if (result == SRT_ERROR) {
       Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
       return Napi::Number::New(env, SRT_ERROR);
@@ -262,7 +262,7 @@ Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
     Napi::Boolean value = info[2].As<Napi::Boolean>();
     int32_t optName = option;
     bool optValue = value;
-    result = srt_setsockflag(socketValue, (SRT_SOCKOPT)optName, &optValue, sizeof(bool));
+    result = srt_setsockflag(socketValue, (SRT_SOCKOPT) optName, &optValue, sizeof(bool));
     if (result == SRT_ERROR) {
       Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
       return Napi::Number::New(env, SRT_ERROR);
@@ -270,12 +270,14 @@ Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
   } else if (info[2].IsString()) {
       Napi::String value = info[2].As<Napi::String>();
       int32_t optName = option;
-      const char * optValue = std::string(value).c_str();
-      result = srt_setsockflag(socketValue, (SRT_SOCKOPT)optName, optValue, sizeof(string));
+      std::string optValue = std::string(value);
+      result = srt_setsockflag(socketValue, (SRT_SOCKOPT) optName, optValue.c_str(), optValue.length());
       if (result == SRT_ERROR) {
         Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
         return Napi::Number::New(env, SRT_ERROR);
       }
+  } else {
+    Napi::Error::New(env, "Unexpected argument type for srt_setsockflag").ThrowAsJavaScriptException();
   }
   return Napi::Number::New(env, result);
 }
