@@ -44,8 +44,8 @@
     "debug": "^4.1.1",
     "del": "^5.1.0",
     "git-clone": "^0.1.0",
-    "node-addon-api": "^3.0.0",
-    "node-gyp": "^7.0.0"
+    "node-addon-api": "^5.0.0",
+    "node-gyp": "^9.3.0"
   },
   "bugs": {
     "url": "https://github.com/Eyevinn/node-srt/issues"
