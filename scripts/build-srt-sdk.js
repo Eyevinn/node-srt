@@ -7,12 +7,12 @@ const fs = require('fs');
 const process = require('process');
 const clone = require('git-clone');
 const del = require('del');
-const { spawnSync } = require('child_process');
+const { spawnSync, execSync } = require('child_process');
 const os = require('os');
 const env = process.env;
 
 const SRT_REPO = env.NODE_SRT_REPO || "https://github.com/Haivision/srt.git";
-const SRT_CHECKOUT = "v1.4.2";
+const SRT_CHECKOUT = "v1.4.4";
 
 const srtRepoPath = env.NODE_SRT_LOCAL_REPO ? `file://${path.join(__dirname, env.NODE_SRT_LOCAL_REPO)}` : SRT_REPO;
 const srtCheckout = env.NODE_SRT_CHECKOUT || SRT_CHECKOUT;
@@ -23,7 +23,7 @@ const buildDir = path.join(depsPath, 'build'); // FIXME: name this srt-build (in
 const numCpus = os.cpus().length; // NOTE: not the actual physical cores amount btw, see https://www.npmjs.com/package/physical-cpu-count
 
 if (!fs.existsSync(depsPath)) {
-  console.log('Creating dir:', depsPath)
+  console.log('Creating dir:', depsPath);
   fs.mkdirSync(depsPath);
 }
 
@@ -36,6 +36,12 @@ if (!fs.existsSync(srtSourcePath)) {
       if (fs.existsSync(srtSourcePath)) del.sync(srtSourcePath);
       process.exit(1);
     }
+    
+    console.log("Patch build script");
+    const patch = spawnSync('patch', [ 'configure-data.tcl', '<', '../../scripts/configure-data.tcl.patch' ], { cwd: srtSourcePath, shell: true, stdio: 'inherit' });
+    if (patch.status) {
+      process.exit(patch.status);
+    }
 
     build();
   });
@@ -45,9 +51,15 @@ if (!fs.existsSync(srtSourcePath)) {
 
 function build() {
   console.log('Building SRT SDK and prerequisites for current platform:', process.platform);
+  let opensslRoot;
   switch (process.platform) {
   case "win32":
     buildWin32();
+    break;
+  case "darwin":
+    opensslRoot = execSync('brew --prefix openssl').toString().trim();
+    process.env.OPENSSL_ROOT_DIR = opensslRoot;
+    buildNx();
     break;
   default:
     buildNx();

@@ -1,0 +1,17 @@
+diff --git a/configure-data.tcl b/configure-data.tcl
+index 5c0ee2e..ebca78e 100644
+--- a/configure-data.tcl
++++ b/configure-data.tcl
+@@ -372,9 +372,10 @@ proc postprocess {} {
+ 				if { $er } {
+ 					error "You must have OpenSSL installed from 'brew' tool. The standard Mac version is inappropriate."
+ 				}
++				set prefix [exec brew --prefix openssl]
+ 
+-				lappend ::cmakeopt "-DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include"
+-				lappend ::cmakeopt "-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib/libcrypto.a"
++				lappend ::cmakeopt "-DOPENSSL_INCLUDE_DIR=$prefix/include"
++				lappend ::cmakeopt "-DOPENSSL_LIBRARIES=$prefix/lib/libcrypto.a"
+ 			}
+ 		}
+ 	}
