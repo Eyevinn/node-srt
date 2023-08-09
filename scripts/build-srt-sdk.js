@@ -4,6 +4,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const jsdiff = require('diff');
 const process = require('process');
 const clone = require('git-clone');
 const del = require('del');
@@ -36,12 +37,21 @@ if (!fs.existsSync(srtSourcePath)) {
       if (fs.existsSync(srtSourcePath)) del.sync(srtSourcePath);
       process.exit(1);
     }
-    
     console.log("Patch build script");
-    const patch = spawnSync('patch', [ 'configure-data.tcl', '<', '../../scripts/configure-data.tcl.patch' ], { cwd: srtSourcePath, shell: true, stdio: 'inherit' });
-    if (patch.status) {
-      process.exit(patch.status);
-    }
+
+    // Read the source file and the patch file
+    const sourceFilePath = path.join(srtSourcePath, 'configure-data.tcl');
+    const patchFilePath = path.join(__dirname, 'configure-data.tcl.patch');
+
+    // Read the source file and the patch file
+    const sourceContent = fs.readFileSync(sourceFilePath, 'utf8');
+    const patchContent = fs.readFileSync(patchFilePath, 'utf8');
+
+    // Apply the patch
+    const patchedContent = jsdiff.applyPatch(sourceContent, patchContent);
+
+    // Write the patched content back to the source file
+    fs.writeFileSync(sourceFilePath, patchedContent, 'utf8');
 
     build();
   });
