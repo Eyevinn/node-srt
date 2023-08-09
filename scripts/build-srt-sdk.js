@@ -98,7 +98,7 @@ function buildWin32() {
   }
 
   console.log("Running cmake generator");
-  const generator = spawnSync('cmake', [ srtSourcePath, '-DCMAKE_BUILD_TYPE=Release', '-G"Visual Studio 16 2019"', '-A', process.arch, '-DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake' ], { cwd: buildDir, shell: true } );
+  const generator = spawnSync('cmake', [ '"'+srtSourcePath+'"', '-DCMAKE_BUILD_TYPE=Release', '-G"Visual Studio 16 2019"', '-A', process.arch, '-DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake' ], { cwd: buildDir, shell: true } );
   if (generator.stdout)
     console.log(generator.stdout.toString());
   if (generator.status) {
@@ -107,7 +107,7 @@ function buildWin32() {
   }
 
   console.log("Running CMake build");
-  const build = spawnSync('cmake', [ '--build', buildDir, '--config', 'Release' ], { cwd: buildDir, shell: true } );
+  const build = spawnSync('cmake', [ '--build', '"'+buildDir+'"', '--config', 'Release' ], { cwd: buildDir, shell: true } );
   if (build.stdout)
     console.log(build.stdout.toString());
   if (build.status) {
