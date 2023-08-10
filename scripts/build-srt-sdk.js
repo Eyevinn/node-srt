@@ -13,7 +13,7 @@ const os = require('os');
 const env = process.env;
 
 const SRT_REPO = env.NODE_SRT_REPO || "https://github.com/Haivision/srt.git";
-const SRT_CHECKOUT = "v1.4.4";
+const SRT_CHECKOUT = "v1.5.2";
 
 const srtRepoPath = env.NODE_SRT_LOCAL_REPO ? `file://${path.join(__dirname, env.NODE_SRT_LOCAL_REPO)}` : SRT_REPO;
 const srtCheckout = env.NODE_SRT_CHECKOUT || SRT_CHECKOUT;
