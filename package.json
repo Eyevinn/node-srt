@@ -1,6 +1,6 @@
 {
   "name": "@eyevinn/srt",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Nodejs bindings for Secure Reliable Transport SDK",
   "main": "index.js",
   "scripts": {
