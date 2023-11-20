@@ -25,7 +25,7 @@ class AsyncSRT extends EventEmitter {
   static TimeoutMs = DEFAULT_PROMISE_TIMEOUT_MS;
 
   constructor() {
-
+    super()
     DEBUG && debug('Creating task-runner worker instance');
 
     this._worker = new Worker(path.resolve(__dirname, './async-worker.js'));
