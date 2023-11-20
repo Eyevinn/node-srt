@@ -6,6 +6,7 @@ const debug = require('debug')('srt-async');
 
 const { traceCallToString, extractTransferListFromParams } = require('./async-helpers');
 const { SRT } = require('../build/Release/node_srt.node');
+const EventEmitter = require('events');
 
 const DEFAULT_PROMISE_TIMEOUT_MS = 3000;
 
@@ -15,7 +16,7 @@ const DEBUG = false;
 const WORK_ID_GEN_MOD = 0xFFF;
 */
 
-class AsyncSRT {
+class AsyncSRT extends EventEmitter {
 
   /**
    * @static
@@ -67,6 +68,7 @@ class AsyncSRT {
         '\n  Binding call:', traceCallToString(data.call.method, data.call.args),
         //'\n  Stacktrace:', data.err.stack
         );
+      this.emit('error', data.err.message)
       return;
     }
 
