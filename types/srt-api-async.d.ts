@@ -1,11 +1,11 @@
-
+import { EventEmitter } from "events";
 import { SRTLoggingLevel, SRTResult, SRTSockOpt, SRTSockStatus } from "../src/srt-api-enums";
 
 import { SRTReadReturn, SRTFileDescriptor, SRTEpollEvent, SRTSockOptValue, SRTStats } from "./srt-api"
 
 export type AsyncSRTCallback<T> = (result: T) => void;
 
-export class AsyncSRT {
+export class AsyncSRT extends EventEmitter {
 
   static TimeoutMs: number;
 
