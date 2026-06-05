@@ -1,4 +1,4 @@
-const { SRT } = require('../index.js');
+const { SRT } = require("../index.js");
 
 describe("SRT library", () => {
   it("exposes constants", () => {
@@ -77,5 +77,13 @@ describe("SRT library", () => {
   it("exposes socket options", () => {
     expect(SRT.SRTO_UDP_SNDBUF).toEqual(8);
     expect(SRT.SRTO_RCVLATENCY).toEqual(43);
+  });
+
+  it("can set and get maxbw as bigint", () => {
+    const srt = new SRT();
+    const socket = srt.createSocket();
+    srt.setSockOpt(socket, SRT.SRTO_MAXBW, 1000000n);
+    const set = srt.getSockOpt(socket, SRT.SRTO_MAXBW);
+    expect(set).toEqual(1000000n);
   });
 });
