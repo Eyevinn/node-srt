@@ -388,14 +388,11 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
     case SRTO_PASSPHRASE:
     case SRTO_STREAMID:
     {
-      char optValue[512] = {0};
-      int optSize = sizeof(optValue) - 1;
+      char optValue[512];
+      int optSize = sizeof(optValue);
       result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
-      if (result == SRT_ERROR) {
-        Napi::TypeError::New(env, "Failed to get SRT socket option").ThrowAsJavaScriptException();
-        return env.Undefined();
-      }
-      returnVal = Napi::Value::From(env, std::string(optValue, static_cast<size_t>(optSize)));
+
+      returnVal = Napi::Value::From(env, std::string(optValue));
       break;
     }
     default:
