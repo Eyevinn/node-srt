@@ -249,7 +249,26 @@ Napi::Value NodeSRT::SetSockOpt(const Napi::CallbackInfo& info) {
   Napi::Number option = info[1].As<Napi::Number>();
   int result = SRT_ERROR;
 
-  if (info[2].IsNumber()) {
+  if (info[2].IsEmpty()) {
+      Napi::TypeError::New(env, "Value is empty").ThrowAsJavaScriptException();
+      return env.Undefined();
+  }
+
+  if (info[2].IsBigInt()) {
+    Napi::BigInt value = info[2].As<Napi::BigInt>();
+    int32_t optName = option;
+    bool lossless = true;
+    int64_t optValue = value.Int64Value(&lossless);
+    if (!lossless) {
+      Napi::Error::New(env, "BigInt value overflows int64_t").ThrowAsJavaScriptException();
+      return Napi::Number::New(env, SRT_ERROR);
+    }
+    result = srt_setsockflag(socketValue, (SRT_SOCKOPT) optName, &optValue, sizeof(int64_t));
+    if (result == SRT_ERROR) {
+      Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
+      return Napi::Number::New(env, SRT_ERROR);
+    }
+  } else if (info[2].IsNumber()) {
     Napi::Number value = info[2].As<Napi::Number>();
     int32_t optName = option;
     int optValue = value;
@@ -296,11 +315,24 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
   int result = SRT_ERROR;
 
   switch((SRT_SOCKOPT)optName) {
+    case SRTO_INPUTBW:
+    case SRTO_MAXBW:
+    case SRTO_MININPUTBW:
+    {
+      int64_t optValue = 0;
+      int optSize = sizeof(optValue);
+      result = srt_getsockflag(socketValue, (SRT_SOCKOPT)optName, (void *)&optValue, &optSize);
+      if (result == SRT_ERROR) {
+        Napi::TypeError::New(env, "Failed to get SRT bandwidth option").ThrowAsJavaScriptException();
+        return env.Undefined();
+      }
+      returnVal = Napi::BigInt::New(env, optValue);
+      break;
+    }
     case SRTO_MSS:
     case SRTO_CONNTIMEO:
     case SRTO_EVENT:
     case SRTO_FC:
-    case SRTO_INPUTBW:
     case SRTO_IPTOS:
     case SRTO_ISN:
     case SRTO_IPTTL:
@@ -310,7 +342,6 @@ Napi::Value NodeSRT::GetSockOpt(const Napi::CallbackInfo& info) {
     case SRTO_KMSTATE:
     case SRTO_LATENCY:
     case SRTO_LOSSMAXTTL:
-    case SRTO_MAXBW:
     case SRTO_MINVERSION:
     case SRTO_OHEADBW:
     case SRTO_PAYLOADSIZE:
