@@ -177,8 +177,6 @@ Napi::Value NodeSRT::Accept(const Napi::CallbackInfo& info) {
     Napi::Error::New(env, srt_getlasterror_str()).ThrowAsJavaScriptException();
     return Napi::Number::New(env, SRT_ERROR);
   }
-  srt_close(socketValue);
-  socketValue = Napi::Number::New(env, SRT_INVALID_SOCK);
   return Napi::Number::New(env, their_fd);
 }
 
